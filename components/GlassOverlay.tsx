@@ -109,7 +109,7 @@ function Shards({
       {geometriesData.map((data, index) => (
         <RigidBody
           key={index}
-          ref={(el) => (rigidBodyRefs.current[index] = el)}
+          ref={(el) => { rigidBodyRefs.current[index] = el; }}
           type={type}
           position={[data.center.x, data.center.y, data.center.z]}
           colliders="hull"
