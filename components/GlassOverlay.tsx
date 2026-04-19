@@ -212,7 +212,7 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
 
       setTimeout(() => {
         onComplete();
-      }, 8000);
+      }, 10000);
     } else {
       generateCracks(e.point);
     }
@@ -280,7 +280,7 @@ export default function GlassOverlay() {
     >
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
-        style={{ width: "100%", height: "100%", display: 'block' }}
+        style={{ width: "100%", height: "100%", display: 'block', pointerEvents: isShattered ? "none" : "auto" }}
       >
         <React.Suspense fallback={null}>
           <Scene onShatter={() => setIsShattered(true)} onComplete={() => setActive(false)} />

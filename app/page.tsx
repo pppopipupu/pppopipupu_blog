@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import Link from "next/link";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Center, Text3D, Float } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -64,7 +65,6 @@ export default function Home() {
         alignItems: "center",
         justifyContent: "flex-start",
         paddingTop: "50px",
-        fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif",
         color: "#00ff00",
         overflow: "hidden"
       }}
@@ -173,6 +173,31 @@ export default function Home() {
           <tr>
             <td><a href="https://www.mcmod.cn/author/31246.html">MCMOD</a></td>
             <td>我的mcmod作者页😡</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 className="blink-text" style={{ color: "#ffff00", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff0000" }}>
+        ★★★ My Articles ★★★
+      </h2>
+      <table style={{ marginBottom: "50px", width: "80%", maxWidth: "800px", textAlign: "center" }}>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>标题</th>
+            <th>简介</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-04-20</td>
+            <td><Link href="/articles/first">第一篇文章！<b>Who am I</b></Link></td>
+            <td>推荐阅读指数：★★★★★ Masterpiece！真正的大师之作！</td>
+          </tr>
+          <tr>
+            <td>2026-04-18</td>
+            <td><a href="#">如何制作一个安格瑞的网页😡</a></td>
+            <td>更多闪烁！更多彩色！拒绝现代Web设计！</td>
           </tr>
         </tbody>
       </table>
