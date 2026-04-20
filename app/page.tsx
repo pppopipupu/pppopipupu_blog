@@ -6,6 +6,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Center, Text3D, Float } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
+import Giscus from "@giscus/react";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -209,6 +210,41 @@ export default function Home() {
           </tr>
         </tbody>
       </table>
+
+
+      <div style={{ 
+        width: "80%", 
+        maxWidth: "800px", 
+        border: "5px outset #00ffff", 
+        backgroundColor: "#000080", 
+        padding: "20px", 
+        marginBottom: "50px",
+        boxShadow: "10px 10px 0px #ff00ff"
+      }}>
+        <h2 className="rainbow-text blink-text" style={{ 
+          fontSize: "2.5rem", 
+          textAlign: "center", 
+          margin: "0 0 20px 0",
+          textTransform: "uppercase"
+        }}>
+          GUESTBOOK
+        </h2>
+        <Giscus
+          id="comments"
+          repo="pppopipupu/pppopipupu_blog"
+          repoId="R_kgDOSGKrKw"
+          category="General"
+          categoryId="DIC_kwDOSGKrK84C7SKr"
+          mapping="pathname"
+          term="Welcome to @giscus/react component!"
+          reactionsEnabled="1"
+          emitMetadata="0"
+          inputPosition="top"
+          theme="noborder_dark"
+          lang="zh-CN"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }
