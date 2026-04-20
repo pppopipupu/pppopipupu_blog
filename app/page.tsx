@@ -256,7 +256,7 @@ export default function Home() {
           reactionsEnabled="1"
           emitMetadata="0"
           inputPosition="top"
-          theme="noborder_dark"
+          theme="https://pppopipupu.github.io/pppopipupu_blog/giscus-y2k.css"
           lang="zh-CN"
           loading="lazy"
         />
