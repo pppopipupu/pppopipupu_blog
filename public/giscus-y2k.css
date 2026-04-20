@@ -1,0 +1,433 @@
+@font-face {
+  font-family: "Maple Mono NL";
+  src: url("https://pppopipupu.github.io/pppopipupu_blog/fonts/MapleMonoNL-CN-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+main {
+  --color-prettylights-syntax-comment: #00ff00;
+  --color-prettylights-syntax-constant: #ff00ff;
+  --color-prettylights-syntax-entity: #ffff00;
+  --color-prettylights-syntax-storage-modifier-import: #00ffff;
+  --color-prettylights-syntax-entity-tag: #ff0000;
+  --color-prettylights-syntax-keyword: #ff00ff;
+  --color-prettylights-syntax-string: #00ff00;
+  --color-prettylights-syntax-variable: #ffff00;
+  --color-prettylights-syntax-markup-heading: #ff0000;
+  --color-prettylights-syntax-markup-list: #ffff00;
+  --color-prettylights-syntax-markup-italic: #00ffff;
+  --color-prettylights-syntax-markup-bold: #ff00ff;
+
+  --color-btn-text: #ffff00;
+  --color-btn-bg: #000080;
+  --color-btn-border: #00ffff;
+  --color-btn-shadow: none;
+  --color-btn-insetShadow: none;
+  --color-btn-hover-bg: #0000aa;
+  --color-btn-hover-border: #ff00ff;
+  --color-btn-active-bg: #0000cc;
+  --color-btn-active-border: #ff0000;
+  --color-btn-selected-bg: #000066;
+  --color-btn-primary-text: #000000;
+  --color-btn-primary-bg: #00ff00;
+  --color-btn-primary-border: #00cc00;
+  --color-btn-primary-shadow: none;
+  --color-btn-primary-insetShadow: none;
+  --color-btn-primary-hover-bg: #33ff33;
+  --color-btn-primary-hover-border: #00ff00;
+  --color-btn-primary-selected-bg: #009900;
+  --color-btn-primary-disabled-text: #666666;
+  --color-btn-primary-disabled-bg: #003300;
+  --color-btn-primary-disabled-border: #006600;
+
+  --color-canvas-default: #000080;
+  --color-canvas-overlay: #000066;
+  --color-canvas-inset: #000055;
+  --color-canvas-subtle: #000044;
+
+  --color-border-default: #00ffff;
+  --color-border-muted: #0080ff;
+  --color-border-overlay: #ff00ff;
+
+  --color-neutral-muted: rgba(0, 255, 255, 0.15);
+
+  --color-fg-default: #00ff00;
+  --color-fg-muted: #00cccc;
+  --color-fg-subtle: #0099aa;
+
+  --color-scale-blue-2: #00ffff;
+
+  color: #00ff00;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+main .gsc-main {
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.color-bg-primary {
+  background-color: #000080 !important;
+}
+
+.color-bg-tertiary {
+  background-color: #000055 !important;
+}
+
+.color-bg-overlay {
+  background-color: #000066 !important;
+}
+
+.color-bg-inset {
+  background-color: #000044 !important;
+}
+
+.color-bg-canvas {
+  background-color: #000080 !important;
+}
+
+.color-bg-info {
+  background-color: #330033 !important;
+}
+
+.color-text-primary,
+.color-text-primary a {
+  color: #00ff00 !important;
+}
+
+.color-text-secondary {
+  color: #00cccc !important;
+}
+
+.color-text-tertiary {
+  color: #0099aa !important;
+}
+
+.color-border-primary {
+  border-color: #00ffff !important;
+}
+
+.color-border-tertiary {
+  border-color: #ff00ff !important;
+}
+
+.color-box-border-info {
+  border-color: #ff0000 !important;
+  color: #ff0000 !important;
+}
+
+.link-primary {
+  color: #ffff00 !important;
+}
+
+.link-secondary {
+  color: #00cccc !important;
+}
+
+.link-secondary:hover,
+.link-primary:hover {
+  color: #ff0000 !important;
+}
+
+.gsc-comment {
+  margin-bottom: 12px;
+}
+
+.gsc-comment > div {
+  border: 3px outset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+  box-shadow: 4px 4px 0px #ff00ff;
+}
+
+.gsc-comment .gsc-comment-header {
+  background-color: #000066 !important;
+  border-bottom: 2px inset #00ffff !important;
+}
+
+.gsc-comment-content,
+.gsc-reply-content {
+  color: #ffffff !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.gsc-comment-content p,
+.gsc-reply-content p {
+  color: #ffffff !important;
+}
+
+.gsc-comment-box {
+  border: 3px outset #ff00ff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+  box-shadow: 4px 4px 0px #00ffff;
+}
+
+.gsc-comment-box-tabs {
+  background-color: #000055 !important;
+  border-bottom: 2px inset #ff00ff !important;
+}
+
+.gsc-comment-box-tabs button {
+  border-radius: 0 !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.gsc-comment-box-textarea {
+  background-color: #000044 !important;
+  color: #00ff00 !important;
+  border: 2px inset #00ffff !important;
+  border-radius: 0 !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.gsc-comment-box-textarea::placeholder {
+  color: #008080 !important;
+}
+
+.gsc-comment-box-textarea-extras {
+  background-color: #000044 !important;
+  border-top: 1px solid #005555 !important;
+}
+
+.gsc-comment-box-bottom {
+  border-top: 2px inset #ff00ff !important;
+}
+
+.gsc-comment-box-bottom .btn {
+  border: 2px outset #00ff00 !important;
+  border-radius: 0 !important;
+  background-color: #008000 !important;
+  color: #000000 !important;
+  font-weight: bold;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+  text-transform: uppercase;
+}
+
+.gsc-comment-box-bottom .btn:hover {
+  background-color: #00aa00 !important;
+}
+
+.gsc-comment-box-bottom .btn:disabled {
+  background-color: #003300 !important;
+  color: #006600 !important;
+  border-color: #004400 !important;
+}
+
+.gsc-header {
+  border-bottom: 2px solid #ff00ff;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.gsc-comments-count a {
+  color: #ffff00 !important;
+  text-decoration: underline !important;
+}
+
+.BtnGroup-item .btn {
+  border: 2px outset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+  color: #00ff00 !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.BtnGroup-item--selected .btn {
+  background-color: #000055 !important;
+  color: #ffff00 !important;
+  border-style: inset !important;
+}
+
+.gsc-reactions {
+  border: 3px outset #ff0000 !important;
+  border-radius: 0 !important;
+  padding: 10px;
+  background-color: #000066 !important;
+  box-shadow: 4px 4px 0px #ffff00;
+  margin-bottom: 16px;
+}
+
+.gsc-reactions-count a {
+  color: #ff00ff !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.gsc-social-reaction-summary-item {
+  border: 2px outset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+  color: #ffff00 !important;
+}
+
+.gsc-social-reaction-summary-item.has-reacted {
+  border-style: inset !important;
+  border-color: #ff00ff !important;
+  background-color: #330033 !important;
+}
+
+.gsc-direct-reaction-button {
+  border: 2px outset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+}
+
+.gsc-direct-reaction-button.has-reacted {
+  border-style: inset !important;
+  border-color: #ff00ff !important;
+  background-color: #330033 !important;
+}
+
+.gsc-emoji-button {
+  border: 2px outset #0080ff !important;
+  border-radius: 0 !important;
+  background-color: #000066 !important;
+}
+
+.gsc-emoji-button:hover {
+  background-color: #000099 !important;
+  border-color: #ff00ff !important;
+}
+
+.gsc-emoji-button.has-reacted {
+  border-style: inset !important;
+  border-color: #ff00ff !important;
+  background-color: #330033 !important;
+}
+
+.gsc-reactions-popover {
+  border: 3px outset #ff00ff !important;
+  border-radius: 0 !important;
+  background-color: #000066 !important;
+  box-shadow: 4px 4px 0px #00ffff;
+}
+
+.gsc-upvote-button {
+  border: 2px outset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000080 !important;
+  color: #00ff00 !important;
+}
+
+.gsc-upvote-button.has-reacted {
+  border-style: inset !important;
+  border-color: #ff00ff !important;
+  background-color: #330033 !important;
+  color: #ff00ff !important;
+}
+
+.gsc-reply-box button,
+.gsc-reply-box .form-control {
+  border: 2px inset #00ffff !important;
+  border-radius: 0 !important;
+  background-color: #000044 !important;
+  color: #008080 !important;
+  font-family: "Comic Sans MS", "Comic Sans", "Maple Mono NL", monospace;
+}
+
+.gsc-replies {
+  border: 2px inset #0080ff !important;
+  border-radius: 0 !important;
+  border-top: none !important;
+  background-color: #000044 !important;
+}
+
+.gsc-tl-line {
+  background-color: #ff00ff !important;
+}
+
+.gsc-reply .gsc-reply-author a span {
+  color: #ffff00 !important;
+}
+
+.gsc-reply-header time {
+  color: #00cccc !important;
+}
+
+.rounded-md {
+  border-radius: 0 !important;
+}
+
+.rounded-full {
+  border-radius: 0 !important;
+  border: 2px outset #ff00ff !important;
+}
+
+.rounded-t {
+  border-radius: 0 !important;
+}
+
+.rounded-xl {
+  border-radius: 0 !important;
+}
+
+.rounded {
+  border-radius: 0 !important;
+}
+
+.gsc-comment-author-avatar img {
+  border-radius: 0 !important;
+  border: 2px outset #ff00ff !important;
+}
+
+.gsc-reply-author-avatar img {
+  border-radius: 0 !important;
+  border: 2px outset #ff00ff !important;
+}
+
+* {
+  scrollbar-color: #ff00ff #000080;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000080;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ff00ff;
+  border: 2px outset #ff00ff;
+}
+
+a:hover {
+  color: #ff0000 !important;
+  cursor: crosshair !important;
+}
+
+.border-transparent {
+  border-color: #000080 !important;
+}
+
+.gsc-comment-author time {
+  color: #00cccc !important;
+}
+
+.markdown {
+  color: #ffffff !important;
+}
+
+.markdown a {
+  color: #00ffff !important;
+}
+
+.markdown code {
+  background-color: #000044 !important;
+  color: #00ff00 !important;
+  border: 1px solid #0080ff !important;
+  border-radius: 0 !important;
+}
+
+.markdown pre {
+  background-color: #000044 !important;
+  border: 2px inset #0080ff !important;
+  border-radius: 0 !important;
+}
+
+.markdown blockquote {
+  border-left-color: #ff00ff !important;
+  color: #00cccc !important;
+}
