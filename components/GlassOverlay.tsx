@@ -1,11 +1,43 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 import * as THREE from "three";
 import { Delaunay } from "d3-delaunay";
 import { Environment } from "@react-three/drei";
+
+const CLICK_THROTTLE_MS = 300;
+const CLICK_DEDUP_DISTANCE = 0.3;
+const MAX_CRACK_BRANCHES = 150;
+
+const _cachedShardMaterial = new THREE.MeshPhysicalMaterial({
+  transmission: 0.9,
+  transparent: true,
+  opacity: 1,
+  roughness: 0.1,
+  ior: 1.5,
+  thickness: 0.05,
+});
+
+const _cachedCrackMaterial = new THREE.LineBasicMaterial({
+  color: "#ffffff",
+  transparent: true,
+  opacity: 0.8,
+});
+
+const _cachedGlassMaterial = new THREE.MeshPhysicalMaterial({
+  color: new THREE.Color().setHSL(0.5, 0.1, 0.9),
+  transmission: 0.9,
+  transparent: true,
+  opacity: 1,
+  roughness: 0.05,
+  ior: 1.5,
+  thickness: 0.1,
+});
+
+const _tempDir = new THREE.Vector3();
+const _tempTorque = new THREE.Vector3();
 
 function Shards({
   width,
@@ -62,9 +94,10 @@ function Shards({
       geometry.boundingBox?.getCenter(center);
       geometry.translate(-center.x, -center.y, -center.z);
 
-      const color = new THREE.Color().setHSL(0.5, 0.2, 0.8 + Math.random() * 0.2);
+      const material = _cachedShardMaterial.clone();
+      material.color = new THREE.Color().setHSL(0.5, 0.2, 0.8 + Math.random() * 0.2);
 
-      geometries.push({ geometry, center, color });
+      geometries.push({ geometry, center, material });
     }
     return geometries;
   }, [width, height, pointCount]);
@@ -73,29 +106,26 @@ function Shards({
 
   useEffect(() => {
     if (shattered && clickPos) {
-      // Delay impulse application to ensure rigid bodies are fully initialized in Rapier
       setTimeout(() => {
         geometriesData.forEach((data, index) => {
           const rb = rigidBodyRefs.current[index];
           if (rb) {
             const shardPos = data.center;
-            const direction = new THREE.Vector3().subVectors(shardPos, clickPos).normalize();
+            _tempDir.subVectors(shardPos, clickPos).normalize();
 
-            direction.z += (Math.random() * 0.5 + 0.5);
-            direction.normalize();
+            _tempDir.z += (Math.random() * 0.5 + 0.5);
+            _tempDir.normalize();
 
             const distance = shardPos.distanceTo(clickPos);
             const force = Math.max(0, (5 - distance) * 2) + Math.random() * 2;
 
-            rb.applyImpulse(direction.multiplyScalar(force * 0.01), true);
-            rb.applyTorqueImpulse(
-              new THREE.Vector3(
-                (Math.random() - 0.5) * 0.005,
-                (Math.random() - 0.5) * 0.005,
-                (Math.random() - 0.5) * 0.005
-              ),
-              true
+            rb.applyImpulse(_tempDir.multiplyScalar(force * 0.01), true);
+            _tempTorque.set(
+              (Math.random() - 0.5) * 0.005,
+              (Math.random() - 0.5) * 0.005,
+              (Math.random() - 0.5) * 0.005
             );
+            rb.applyTorqueImpulse(_tempTorque, true);
           }
         });
       }, 50);
@@ -114,17 +144,7 @@ function Shards({
           position={[data.center.x, data.center.y, data.center.z]}
           colliders="hull"
         >
-          <mesh geometry={data.geometry}>
-            <meshPhysicalMaterial
-              color={data.color}
-              transmission={0.9}
-              transparent
-              opacity={1}
-              roughness={0.1}
-              ior={1.5}
-              thickness={0.05}
-            />
-          </mesh>
+          <mesh geometry={data.geometry} material={data.material} />
         </RigidBody>
       ))}
     </group>
@@ -132,22 +152,36 @@ function Shards({
 }
 
 function CrackLines({ cracks }: { cracks: THREE.Vector3[][] }) {
+  const geometryRef = useRef<THREE.BufferGeometry | null>(null);
+
   const geometry = useMemo(() => {
+    if (geometryRef.current) {
+      geometryRef.current.dispose();
+    }
     const pts: THREE.Vector3[] = [];
     cracks.forEach((crack) => {
       for (let i = 0; i < crack.length - 1; i++) {
         pts.push(crack[i], crack[i + 1]);
       }
     });
-    return new THREE.BufferGeometry().setFromPoints(pts);
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    geometryRef.current = geo;
+    return geo;
   }, [cracks]);
+
+  useEffect(() => {
+    return () => {
+      if (geometryRef.current) {
+        geometryRef.current.dispose();
+        geometryRef.current = null;
+      }
+    };
+  }, []);
 
   if (cracks.length === 0) return null;
 
   return (
-    <lineSegments geometry={geometry} position={[0, 0, 0.06]}>
-      <lineBasicMaterial color="#ffffff" transparent opacity={0.8} />
-    </lineSegments>
+    <lineSegments geometry={geometry} position={[0, 0, 0.06]} material={_cachedCrackMaterial} />
   );
 }
 
@@ -157,16 +191,23 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
   const [shattered, setShattered] = useState(false);
   const [clickPos, setClickPos] = useState<THREE.Vector3 | null>(null);
   const [cracks, setCracks] = useState<THREE.Vector3[][]>([]);
+  const lastClickTime = useRef(0);
+  const lastClickPos = useRef<THREE.Vector3 | null>(null);
+  const crackCountRef = useRef(0);
 
   const reqClicks = 3;
 
-  const generateCracks = (origin: THREE.Vector3) => {
+  const generateCracks = useCallback((origin: THREE.Vector3) => {
+    if (crackCountRef.current >= MAX_CRACK_BRANCHES) return;
+
     const newCracks: THREE.Vector3[][] = [];
     const numBranches = Math.floor(Math.random() * 4) + 6;
+    const remaining = MAX_CRACK_BRANCHES - crackCountRef.current;
+    const actualBranches = Math.min(numBranches, remaining);
 
-    for (let i = 0; i < numBranches; i++) {
+    for (let i = 0; i < actualBranches; i++) {
       const points = [origin.clone()];
-      let currentPos = origin.clone();
+      let cx = origin.x, cy = origin.y;
 
       let angle = Math.random() * Math.PI * 2;
       let length = Math.random() * 2 + 2;
@@ -175,38 +216,50 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
       for (let j = 0; j < segments; j++) {
         angle += (Math.random() - 0.5) * 0.8;
         const stepLength = length / segments * (Math.random() * 0.5 + 0.8);
-        currentPos = currentPos.clone().add(
-          new THREE.Vector3(Math.cos(angle) * stepLength, Math.sin(angle) * stepLength, 0)
-        );
-        points.push(currentPos);
+        cx += Math.cos(angle) * stepLength;
+        cy += Math.sin(angle) * stepLength;
+        const pt = new THREE.Vector3(cx, cy, 0);
+        points.push(pt);
 
-        if (Math.random() < 0.25) {
-          const forkPoints = [currentPos.clone()];
+        if (Math.random() < 0.25 && crackCountRef.current + newCracks.length + 1 < MAX_CRACK_BRANCHES) {
+          const forkPoints = [new THREE.Vector3(cx, cy, 0)];
           let forkAngle = angle + (Math.random() > 0.5 ? 0.8 : -0.8);
-          let forkPos = currentPos.clone();
+          let fx = cx, fy = cy;
           let forkSegments = Math.floor(segments / 2);
           for (let k = 0; k < forkSegments; k++) {
             forkAngle += (Math.random() - 0.5) * 0.5;
-            forkPos = forkPos.clone().add(
-              new THREE.Vector3(Math.cos(forkAngle) * stepLength, Math.sin(forkAngle) * stepLength, 0)
-            );
-            forkPoints.push(forkPos);
+            fx += Math.cos(forkAngle) * stepLength;
+            fy += Math.sin(forkAngle) * stepLength;
+            forkPoints.push(new THREE.Vector3(fx, fy, 0));
           }
           newCracks.push(forkPoints);
         }
       }
       newCracks.push(points);
     }
+    crackCountRef.current += newCracks.length;
     setCracks((prev) => [...prev, ...newCracks]);
-  }
+  }, []);
 
-  const handleClick = (e: any) => {
+  const handleClick = useCallback((e: any) => {
     if (shattered) return;
+
+    const now = performance.now();
+    if (now - lastClickTime.current < CLICK_THROTTLE_MS) return;
+
+    const clickPoint = e.point as THREE.Vector3;
+    if (lastClickPos.current && lastClickPos.current.distanceTo(clickPoint) < CLICK_DEDUP_DISTANCE) {
+      return;
+    }
+
+    lastClickTime.current = now;
+    lastClickPos.current = clickPoint.clone();
+
     const newCount = clickCount + 1;
     setClickCount(newCount);
 
     if (newCount >= reqClicks) {
-      setClickPos(e.point);
+      setClickPos(clickPoint);
       setShattered(true);
       onShatter();
 
@@ -214,9 +267,13 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
         onComplete();
       }, 10000);
     } else {
-      generateCracks(e.point);
+      generateCracks(clickPoint);
     }
-  };
+  }, [shattered, clickCount, onShatter, onComplete, generateCracks]);
+
+  const planeGeometry = useMemo(() => {
+    return new THREE.PlaneGeometry(viewport.width * 2, viewport.height * 2);
+  }, [viewport.width, viewport.height]);
 
   return (
     <>
@@ -227,18 +284,7 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
 
         <group onClick={handleClick}>
           {!shattered && (
-            <mesh position={[0, 0, 0.05]}>
-              <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
-              <meshPhysicalMaterial
-                color={new THREE.Color().setHSL(0.5, 0.1, 0.9)}
-                transmission={0.9}
-                transparent
-                opacity={1}
-                roughness={0.05}
-                ior={1.5}
-                thickness={0.1}
-              />
-            </mesh>
+            <mesh position={[0, 0, 0.05]} geometry={planeGeometry} material={_cachedGlassMaterial} />
           )}
           {!shattered && <CrackLines cracks={cracks} />}
 
