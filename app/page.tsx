@@ -131,6 +131,22 @@ export default function Home() {
           .article-table td, .article-table th {
             border: 2px inset #FE0000;
           }
+          @keyframes bounceX {
+            0% { left: -30px; }
+            100% { left: 30px; }
+          }
+          @keyframes bounceY {
+            0% { top: -15px; }
+            100% { top: 15px; }
+          }
+          .bouncing-text {
+            display: inline-block;
+            position: relative;
+            animation-name: bounceX, bounceY;
+            animation-timing-function: linear, linear;
+            animation-iteration-count: infinite, infinite;
+            animation-direction: alternate, alternate;
+          }
         `
       }} />
 
@@ -174,14 +190,14 @@ export default function Home() {
       <table>
         <thead>
           <tr>
-            <th>Linkz</th>
-            <th>Info</th>
+            <th><span className="bouncing-text" style={{ animationDuration: '0.42s, 0.58s', animationDelay: '-0.1s, -0.3s' }}>Linkz</span></th>
+            <th><span className="bouncing-text" style={{ animationDuration: '0.37s, 0.49s', animationDelay: '-0.4s, -0.2s' }}>Info</span></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><a href="https://www.mcmod.cn/author/31246.html">MCMOD</a></td>
-            <td>我的mcmod作者页😡</td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.51s, 0.38s', animationDelay: '-0.2s, -0.6s' }}><a href="https://www.mcmod.cn/author/31246.html">MCMOD</a></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.45s, 0.61s', animationDelay: '-0.5s, -0.1s' }}>我的mcmod作者页😡</span></td>
           </tr>
         </tbody>
       </table>
@@ -192,21 +208,21 @@ export default function Home() {
       <table className="article-table" style={{ marginBottom: "50px", width: "80%", maxWidth: "800px", textAlign: "center" }}>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Title</th>
-            <th>Info</th>
+            <th><span className="bouncing-text" style={{ animationDuration: '0.41s, 0.53s', animationDelay: '-0.3s, -0.4s' }}>Date</span></th>
+            <th><span className="bouncing-text" style={{ animationDuration: '0.55s, 0.39s', animationDelay: '-0.6s, -0.2s' }}>Title</span></th>
+            <th><span className="bouncing-text" style={{ animationDuration: '0.46s, 0.62s', animationDelay: '-0.1s, -0.7s' }}>Info</span></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>2026-04-20</td>
-            <td><Link href="/articles/first">第一篇文章！<b>Who am I</b></Link></td>
-            <td>推荐阅读指数：★★★★★ Masterpiece！真正的大师之作！</td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.38s, 0.47s', animationDelay: '-0.7s, -0.3s' }}>2026-04-20</span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.62s, 0.41s', animationDelay: '-0.2s, -0.5s' }}><Link href="/articles/first">第一篇文章！<b>Who am I</b></Link></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.43s, 0.59s', animationDelay: '-0.8s, -0.1s' }}>推荐阅读指数：★★★★★ Masterpiece！真正的大师之作！</span></td>
           </tr>
           <tr>
-            <td>2026-04-18</td>
-            <td><a href="#">如何制作一个安格瑞的网页😡</a></td>
-            <td>更多闪烁！更多彩色！拒绝现代Web设计！</td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.52s, 0.36s', animationDelay: '-0.4s, -0.9s' }}>2026-04-18</span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.49s, 0.65s', animationDelay: '-0.5s, -0.2s' }}><a href="#">如何制作一个安格瑞的网页😡</a></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.58s, 0.42s', animationDelay: '-0.1s, -0.8s' }}>更多闪烁！更多彩色！拒绝现代Web设计！</span></td>
           </tr>
         </tbody>
       </table>
