@@ -122,6 +122,14 @@ export default function Home() {
           a:link { color: #0000ff; text-decoration: underline; }
           a:visited { color: #800080; text-decoration: underline; }
           a:hover { color: #ff0000; text-decoration: none; cursor: crosshair; }
+          .article-table {
+            border: 5px outset #FE0000;
+            background-color: #E000E4;
+            color: #FE0000;
+          }
+          .article-table td, .article-table th {
+            border: 2px inset #FE0000;
+          }
         `
       }} />
 
@@ -180,12 +188,12 @@ export default function Home() {
       <h2 className="blink-text" style={{ color: "#ffff00", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff0000" }}>
         ★★★ My Articles ★★★
       </h2>
-      <table style={{ marginBottom: "50px", width: "80%", maxWidth: "800px", textAlign: "center" }}>
+      <table className="article-table" style={{ marginBottom: "50px", width: "80%", maxWidth: "800px", textAlign: "center" }}>
         <thead>
           <tr>
-            <th>日期</th>
-            <th>标题</th>
-            <th>简介</th>
+            <th>Date</th>
+            <th>Title</th>
+            <th>Info</th>
           </tr>
         </thead>
         <tbody>
