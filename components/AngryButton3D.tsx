@@ -84,7 +84,7 @@ const ADJECTIVES = [
   "FEARLESS", "VALIANT", "HEROIC", "GLORIOUS", "RENOWNED", "FAMOUS", "LEGENDARY",
   "EXALTED", "MYTHIC", "SUPREME", "TRANSCENDENT", "OMNIPOTENT", "GODLIKE",
   "ABSOLUTE", "INFINITE", "ETERNAL", "COSMIC", "UNIVERSAL", "ASTRAL",
-  "DIMENSIONAL", "ALMIGHTY", "UNSTOPPABLE", "UNBREAKABLE", "INVINCIBLE", 
+  "DIMENSIONAL", "ALMIGHTY", "UNSTOPPABLE", "UNBREAKABLE", "INVINCIBLE",
   "SUPERNAL", "CELESTIAL", "DIVINE", "ULTIMATE"
 ];
 
@@ -165,7 +165,7 @@ function RankTitle({ count }: { count: number }) {
     }
   }
 
-  const currentGap = nounIndex < NOUNS.length - 1 
+  const currentGap = nounIndex < NOUNS.length - 1
     ? NOUN_THRESHOLDS[nounIndex + 1] - NOUN_THRESHOLDS[nounIndex]
     : Math.floor(500 * Math.pow(1.15, nounIndex));
 
@@ -218,11 +218,11 @@ function FloatingText({ id, startPos, onComplete }: { id: number, startPos: [num
 
   useFrame((state, delta) => {
     if (groupRef.current) {
-      groupRef.current.position.y += delta * 5; 
-      groupRef.current.position.x += Math.sin(state.clock.elapsedTime * 8 + id) * 0.03; 
-      
+      groupRef.current.position.y += delta * 5;
+      groupRef.current.position.x += Math.sin(state.clock.elapsedTime * 8 + id) * 0.03;
+
       if (materialRef.current) {
-        materialRef.current.opacity -= delta * 0.7; 
+        materialRef.current.opacity -= delta * 0.7;
         if (materialRef.current.opacity <= 0) {
           onComplete(id);
         }
@@ -245,13 +245,13 @@ function FloatingText({ id, startPos, onComplete }: { id: number, startPos: [num
           bevelSegments={3}
         >
           YOU NB!!!
-          <meshStandardMaterial 
-            ref={materialRef} 
-            color="#ffff00" 
-            emissive="#ff0088" 
-            emissiveIntensity={2.5} 
-            transparent 
-            opacity={1} 
+          <meshStandardMaterial
+            ref={materialRef}
+            color="#ffff00"
+            emissive="#ff0088"
+            emissiveIntensity={2.5}
+            transparent
+            opacity={1}
             toneMapped={false}
             metalness={0.8}
             roughness={0.1}
@@ -264,7 +264,7 @@ function FloatingText({ id, startPos, onComplete }: { id: number, startPos: [num
 
 function ButtonModel({ onClick, isPressed }: { onClick: () => void, isPressed: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  
+
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.y = THREE.MathUtils.lerp(
@@ -281,21 +281,21 @@ function ButtonModel({ onClick, isPressed }: { onClick: () => void, isPressed: b
         <cylinderGeometry args={[2.5, 2.8, 1, 32]} />
         <meshStandardMaterial color="#222222" metalness={0.8} roughness={0.4} />
       </mesh>
-      
-      <mesh 
-        ref={meshRef} 
-        position={[0, 0, 0]} 
-        onClick={(e) => { e.stopPropagation(); onClick(); }} 
-        onPointerOver={() => document.body.style.cursor = 'pointer'} 
+
+      <mesh
+        ref={meshRef}
+        position={[0, 0, 0]}
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onPointerOver={() => document.body.style.cursor = 'pointer'}
         onPointerOut={() => document.body.style.cursor = 'auto'}
       >
         <cylinderGeometry args={[2.3, 2.3, 1, 32]} />
-        <meshStandardMaterial 
-          color={isPressed ? "#cc0000" : "#ff0033"} 
-          emissive={isPressed ? "#ff0000" : "#550000"} 
-          emissiveIntensity={isPressed ? 1 : 0.2} 
-          metalness={0.3} 
-          roughness={0.2} 
+        <meshStandardMaterial
+          color={isPressed ? "#cc0000" : "#ff0033"}
+          emissive={isPressed ? "#ff0000" : "#550000"}
+          emissiveIntensity={isPressed ? 1 : 0.2}
+          metalness={0.3}
+          roughness={0.2}
         />
       </mesh>
     </group>
@@ -308,7 +308,8 @@ export default function AngryButton3D({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [isPressed, setIsPressed] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [floatingTexts, setFloatingTexts] = useState<{id: number, pos: [number, number, number]}[]>([]);
+  const [showReset, setShowReset] = useState(false);
+  const [floatingTexts, setFloatingTexts] = useState<{ id: number, pos: [number, number, number] }[]>([]);
 
   useEffect(() => {
     supabase
@@ -381,7 +382,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
 
       {!loading && canRebirth && (
         <div style={{ position: "absolute", top: "20px", left: "20px", zIndex: 20 }}>
-          <button 
+          <button
             onClick={handleRebirth}
             className="blink-text"
             style={{
@@ -395,7 +396,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
               textShadow: "2px 2px #000"
             }}
           >
-            🔥 ASCEND (REBIRTH) 🔥
+            🔥 ASCEND 🔥
           </button>
         </div>
       )}
@@ -409,26 +410,36 @@ export default function AngryButton3D({ userId }: { userId: string }) {
       )}
 
       {!loading && (
-        <div style={{ position: "absolute", bottom: "10px", right: "10px", zIndex: 10, textAlign: "right", backgroundColor: "rgba(0,0,0,0.6)", padding: "10px", border: "2px solid #ff0000" }}>
-          <label style={{ color: "#ff5555", fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", marginBottom: "8px", fontWeight: "bold" }}>
-            <input type="checkbox" checked={confirmReset} onChange={(e) => setConfirmReset(e.target.checked)} style={{ marginRight: "8px", width: "16px", height: "16px" }} />
-            我确认要销毁一切修为
-          </label>
-          <button 
-            disabled={!confirmReset}
-            onClick={handleHardReset}
-            style={{
-              backgroundColor: confirmReset ? "#ff0000" : "#550000",
-              color: confirmReset ? "#ffffff" : "#aaaaaa",
-              border: "2px outset #ff0000",
-              padding: "5px 15px",
-              cursor: confirmReset ? "pointer" : "not-allowed",
-              fontWeight: "bold",
-              fontSize: "1rem"
-            }}
-          >
-            ☠️ 硬重置 (HARD RESET) ☠️
-          </button>
+        <div
+          onMouseEnter={() => setShowReset(true)}
+          onMouseLeave={() => { setShowReset(false); setConfirmReset(false); }}
+          style={{ position: "absolute", bottom: "10px", right: "10px", zIndex: 10 }}
+        >
+          {!showReset ? (
+            <span style={{ fontSize: "1.5rem", cursor: "pointer", opacity: 0.4 }}>☠️</span>
+          ) : (
+            <div style={{ textAlign: "right", backgroundColor: "rgba(0,0,0,0.7)", padding: "10px", border: "2px solid #ff0000" }}>
+              <label style={{ color: "#ff5555", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                <input type="checkbox" checked={confirmReset} onChange={(e) => setConfirmReset(e.target.checked)} style={{ marginRight: "8px", width: "14px", height: "14px" }} />
+                我确认要销毁一切修为
+              </label>
+              <button
+                disabled={!confirmReset}
+                onClick={handleHardReset}
+                style={{
+                  backgroundColor: confirmReset ? "#ff0000" : "#550000",
+                  color: confirmReset ? "#ffffff" : "#aaaaaa",
+                  border: "2px outset #ff0000",
+                  padding: "4px 12px",
+                  cursor: confirmReset ? "pointer" : "not-allowed",
+                  fontWeight: "bold",
+                  fontSize: "0.9rem"
+                }}
+              >
+                ☠️ 硬重置 ☠️
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -441,7 +452,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
           <OrbitingCount count={count} />
           <PressArm isPressed={isPressed} />
           <RankTitle count={count} />
-          
+
           {floatingTexts.map(ft => (
             <FloatingText key={ft.id} id={ft.id} startPos={ft.pos} onComplete={handleFloatingTextComplete} />
           ))}
