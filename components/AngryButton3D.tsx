@@ -149,16 +149,31 @@ const NOUNS = [
   { text: "ANTIGRAVITY", color: "#ff00ff", emissive: "#00ffff", intensity: 6.0 }
 ];
 
-function RankTitle({ count }: { count: number }) {
-  const CLICKS_PER_ADJ = 10;
-  const maxNounThreshold = (NOUNS.length - 1) * ADJECTIVES.length * CLICKS_PER_ADJ;
-  
-  let nounIndex = Math.floor(count / (ADJECTIVES.length * CLICKS_PER_ADJ));
-  let adjIndex = Math.floor((count % (ADJECTIVES.length * CLICKS_PER_ADJ)) / CLICKS_PER_ADJ);
+const NOUN_THRESHOLDS = [0];
+let currentThreshold = 0;
+for (let i = 1; i < NOUNS.length; i++) {
+  currentThreshold += Math.floor(500 * Math.pow(1.15, i - 1));
+  NOUN_THRESHOLDS.push(currentThreshold);
+}
 
-  if (count >= maxNounThreshold) {
-    nounIndex = NOUNS.length - 1;
-    adjIndex = Math.min(Math.floor((count - maxNounThreshold) / CLICKS_PER_ADJ), ADJECTIVES.length - 1);
+function RankTitle({ count }: { count: number }) {
+  let nounIndex = 0;
+  for (let i = NOUNS.length - 1; i >= 0; i--) {
+    if (count >= NOUN_THRESHOLDS[i]) {
+      nounIndex = i;
+      break;
+    }
+  }
+
+  const currentGap = nounIndex < NOUNS.length - 1 
+    ? NOUN_THRESHOLDS[nounIndex + 1] - NOUN_THRESHOLDS[nounIndex]
+    : Math.floor(500 * Math.pow(1.15, nounIndex));
+
+  const progressInGap = count - NOUN_THRESHOLDS[nounIndex];
+  let adjIndex = Math.floor((progressInGap / currentGap) * ADJECTIVES.length);
+
+  if (adjIndex >= ADJECTIVES.length) {
+    adjIndex = ADJECTIVES.length - 1;
   }
 
   const adjText = ADJECTIVES[adjIndex];
@@ -292,6 +307,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
   const [rebirths, setRebirths] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPressed, setIsPressed] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const [floatingTexts, setFloatingTexts] = useState<{id: number, pos: [number, number, number]}[]>([]);
 
   useEffect(() => {
@@ -342,6 +358,16 @@ export default function AngryButton3D({ userId }: { userId: string }) {
       .upsert({ user_id: userId, click_count: 0, rebirths: newRebirths });
   };
 
+  const handleHardReset = async () => {
+    if (!confirmReset) return;
+    setCount(0);
+    setRebirths(0);
+    setConfirmReset(false);
+    await supabase
+      .from("user_clicks")
+      .upsert({ user_id: userId, click_count: 0, rebirths: 0 });
+  };
+
   const reqClicks = Math.floor(500 * Math.pow(1.5, rebirths));
   const canRebirth = count >= reqClicks;
 
@@ -379,6 +405,30 @@ export default function AngryButton3D({ userId }: { userId: string }) {
           <p style={{ color: "#00ffff", margin: 0, textShadow: "1px 1px #000", fontFamily: "monospace", fontSize: "1.2rem", fontWeight: "bold" }}>
             牛逼指数: +{Math.ceil(Math.pow(1.5, rebirths))}
           </p>
+        </div>
+      )}
+
+      {!loading && (
+        <div style={{ position: "absolute", bottom: "10px", right: "10px", zIndex: 10, textAlign: "right", backgroundColor: "rgba(0,0,0,0.6)", padding: "10px", border: "2px solid #ff0000" }}>
+          <label style={{ color: "#ff5555", fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", marginBottom: "8px", fontWeight: "bold" }}>
+            <input type="checkbox" checked={confirmReset} onChange={(e) => setConfirmReset(e.target.checked)} style={{ marginRight: "8px", width: "16px", height: "16px" }} />
+            我确认要销毁一切修为
+          </label>
+          <button 
+            disabled={!confirmReset}
+            onClick={handleHardReset}
+            style={{
+              backgroundColor: confirmReset ? "#ff0000" : "#550000",
+              color: confirmReset ? "#ffffff" : "#aaaaaa",
+              border: "2px outset #ff0000",
+              padding: "5px 15px",
+              cursor: confirmReset ? "pointer" : "not-allowed",
+              fontWeight: "bold",
+              fontSize: "1rem"
+            }}
+          >
+            ☠️ 硬重置 (HARD RESET) ☠️
+          </button>
         </div>
       )}
 
