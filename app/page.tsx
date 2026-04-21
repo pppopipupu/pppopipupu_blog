@@ -199,6 +199,10 @@ export default function Home() {
             <td><span className="bouncing-text" style={{ animationDuration: '0.51s, 0.38s', animationDelay: '-0.2s, -0.6s' }}><a href="https://www.mcmod.cn/author/31246.html">MCMOD</a></span></td>
             <td><span className="bouncing-text" style={{ animationDuration: '0.45s, 0.61s', animationDelay: '-0.5s, -0.1s' }}>我的mcmod作者页😡</span></td>
           </tr>
+          <tr>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.51s, 0.38s', animationDelay: '-0.2s, -0.6s' }}><a href="https://steamcommunity.com/profiles/76561199106950429/">STEAM</a></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.45s, 0.61s', animationDelay: '-0.5s, -0.1s' }}>我的steam，快来加我好友😡</span></td>
+          </tr>
         </tbody>
       </table>
 
