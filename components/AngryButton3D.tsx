@@ -102,46 +102,63 @@ const NOUNS = [
   { text: "GLADIATOR", color: "#ff5555", emissive: "#aa0000", intensity: 0.8 },
   { text: "HERO", color: "#00ff00", emissive: "#00aa00", intensity: 0.8 },
   { text: "CHAMPION", color: "#00ffaa", emissive: "#00aa88", intensity: 0.8 },
+  { text: "DEFENDER", color: "#00ccff", emissive: "#0088cc", intensity: 0.8 },
+  { text: "GUARDIAN", color: "#00bbff", emissive: "#0077bb", intensity: 0.8 },
   { text: "MASTER", color: "#00ffff", emissive: "#00aaaa", intensity: 0.8 },
   { text: "GRANDMASTER", color: "#0088ff", emissive: "#0044aa", intensity: 0.8 },
   { text: "SAGE", color: "#0044ff", emissive: "#0000aa", intensity: 0.8 },
   { text: "SCHOLAR", color: "#5500ff", emissive: "#0000ff", intensity: 0.8 },
   { text: "ADEPT", color: "#8800ff", emissive: "#5500ff", intensity: 0.9 },
+  { text: "MAGE", color: "#9900ff", emissive: "#6600ff", intensity: 0.9 },
+  { text: "SORCERER", color: "#aa00ee", emissive: "#7700dd", intensity: 0.9 },
   { text: "WARLOCK", color: "#aa00ff", emissive: "#8800ff", intensity: 1.0 },
   { text: "ARCHMAGE", color: "#ff00ff", emissive: "#aa00ff", intensity: 1.1 },
+  { text: "PROPHET", color: "#ff55ff", emissive: "#bb00ff", intensity: 1.1 },
+  { text: "ORACLE", color: "#aaddff", emissive: "#00aaff", intensity: 1.1 },
   { text: "AVATAR", color: "#aaffff", emissive: "#00ffff", intensity: 1.2 },
+  { text: "CRUSADER", color: "#ffffaa", emissive: "#ffaa00", intensity: 1.2 },
   { text: "PALADIN", color: "#ffffaa", emissive: "#ffff00", intensity: 1.3 },
   { text: "INQUISITOR", color: "#ff00aa", emissive: "#aa00aa", intensity: 1.4 },
+  { text: "COMMANDER", color: "#ff4444", emissive: "#aa2222", intensity: 1.5 },
   { text: "WARLORD", color: "#ff0000", emissive: "#aa0000", intensity: 1.6 },
+  { text: "CONQUEROR", color: "#cc0000", emissive: "#880000", intensity: 1.7 },
   { text: "VANGUARD", color: "#dddddd", emissive: "#aaaaaa", intensity: 1.7 },
   { text: "DEMIGOD", color: "#ff5500", emissive: "#ff0000", intensity: 1.8 },
   { text: "DEITY", color: "#ffaa00", emissive: "#ff5500", intensity: 1.9 },
   { text: "PANTHEON", color: "#ffff00", emissive: "#ffaa00", intensity: 2.0 },
+  { text: "TITAN", color: "#ffdd00", emissive: "#ccaa00", intensity: 2.0 },
   { text: "PRIMORDIAL", color: "#ffff88", emissive: "#ffff00", intensity: 2.1 },
   { text: "ENTITY", color: "#00aaff", emissive: "#00ffff", intensity: 2.2 },
+  { text: "BEHEMOTH", color: "#aaaaff", emissive: "#5555ff", intensity: 2.2 },
+  { text: "LEVIATHAN", color: "#44aaff", emissive: "#0055ff", intensity: 2.3 },
   { text: "DREADNOUGHT", color: "#ffffff", emissive: "#ff00aa", intensity: 2.3 },
   { text: "SHIFTER", color: "#00ffff", emissive: "#0088ff", intensity: 2.4 },
   { text: "WALKER", color: "#220044", emissive: "#8800ff", intensity: 2.5 },
   { text: "LORDAEMON", color: "#440000", emissive: "#aa0000", intensity: 2.6 },
+  { text: "OVERLORD", color: "#660000", emissive: "#ff0000", intensity: 2.7 },
   { text: "ELDER BRAIN", color: "#ff88ff", emissive: "#ff00ff", intensity: 2.8 },
+  { text: "NECROMANCER", color: "#00ffcc", emissive: "#0088aa", intensity: 2.9 },
   { text: "LICH KING", color: "#00ffff", emissive: "#00ffff", intensity: 3.0 },
   { text: "DESTROYER", color: "#ff0000", emissive: "#ffaa00", intensity: 3.2 },
+  { text: "OBLITERATOR", color: "#ff3300", emissive: "#ff5500", intensity: 3.3 },
   { text: "TARRASQUE", color: "#ffffff", emissive: "#ff00ff", intensity: 3.5 },
   { text: "UNWRITTEN RULE", color: "#000000", emissive: "#ff0000", intensity: 3.8 },
+  { text: "ARCHITECT", color: "#ffffff", emissive: "#aaffff", intensity: 3.9 },
   { text: "CREATOR", color: "#ffffff", emissive: "#ffffff", intensity: 4.0 },
   { text: "ABSOLUTE GOD", color: "#000000", emissive: "#ffffff", intensity: 5.0 },
   { text: "ANTIGRAVITY", color: "#ff00ff", emissive: "#00ffff", intensity: 6.0 }
 ];
 
 function RankTitle({ count }: { count: number }) {
-  const maxNounThreshold = (NOUNS.length - 1) * ADJECTIVES.length;
+  const CLICKS_PER_ADJ = 10;
+  const maxNounThreshold = (NOUNS.length - 1) * ADJECTIVES.length * CLICKS_PER_ADJ;
   
-  let nounIndex = Math.floor(count / ADJECTIVES.length);
-  let adjIndex = count % ADJECTIVES.length;
+  let nounIndex = Math.floor(count / (ADJECTIVES.length * CLICKS_PER_ADJ));
+  let adjIndex = Math.floor((count % (ADJECTIVES.length * CLICKS_PER_ADJ)) / CLICKS_PER_ADJ);
 
   if (count >= maxNounThreshold) {
     nounIndex = NOUNS.length - 1;
-    adjIndex = Math.min(count - maxNounThreshold, ADJECTIVES.length - 1);
+    adjIndex = Math.min(Math.floor((count - maxNounThreshold) / CLICKS_PER_ADJ), ADJECTIVES.length - 1);
   }
 
   const adjText = ADJECTIVES[adjIndex];
@@ -299,7 +316,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
   };
 
   const handleClick = async () => {
-    const clickPower = Math.pow(2, rebirths);
+    const clickPower = Math.ceil(Math.pow(1.5, rebirths));
     const newCount = count + clickPower;
     setCount(newCount);
     setIsPressed(true);
@@ -360,7 +377,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
       {!loading && (
         <div style={{ position: "absolute", bottom: "10px", left: "10px", zIndex: 10 }}>
           <p style={{ color: "#00ffff", margin: 0, textShadow: "1px 1px #000", fontFamily: "monospace", fontSize: "1.2rem", fontWeight: "bold" }}>
-            牛逼指数: +{Math.pow(1.6, rebirths)}
+            牛逼指数: +{Math.ceil(Math.pow(1.5, rebirths))}
           </p>
         </div>
       )}
