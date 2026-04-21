@@ -1,0 +1,390 @@
+"use client";
+
+import React, { useRef, useState, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Text3D, Center, ContactShadows } from "@react-three/drei";
+import * as THREE from "three";
+import { supabase } from "@/lib/supabase";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
+
+function OrbitingCount({ count }: { count: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      const t = state.clock.elapsedTime * 0.6;
+      groupRef.current.position.x = Math.cos(t) * 6;
+      groupRef.current.position.z = Math.sin(t) * 6;
+      groupRef.current.position.y = Math.sin(t * 1.5) * 0.5 + 1;
+      groupRef.current.rotation.y = -t + Math.PI;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[6, 1, 0]}>
+      <Center>
+        <Text3D
+          font="https://cdn.jsdelivr.net/npm/three/examples/fonts/helvetiker_bold.typeface.json"
+          size={1.2}
+          height={0.3}
+          curveSegments={12}
+          bevelEnabled
+          bevelThickness={0.04}
+          bevelSize={0.02}
+          bevelOffset={0}
+          bevelSegments={3}
+        >
+          {count.toString()}
+          <meshStandardMaterial color="#ffff00" emissive="#ffaa00" emissiveIntensity={1.2} metalness={0.9} roughness={0.1} toneMapped={false} />
+        </Text3D>
+      </Center>
+    </group>
+  );
+}
+
+function PressArm({ isPressed }: { isPressed: boolean }) {
+  const armRef = useRef<THREE.Group>(null);
+  const targetY = useRef(5.5);
+  const currentY = useRef(5.5);
+
+  useEffect(() => {
+    if (isPressed) {
+      targetY.current = 0.5;
+      setTimeout(() => {
+        targetY.current = 5.5;
+      }, 100);
+    }
+  }, [isPressed]);
+
+  useFrame(() => {
+    if (armRef.current) {
+      currentY.current = THREE.MathUtils.lerp(currentY.current, targetY.current, 0.4);
+      armRef.current.position.y = currentY.current;
+    }
+  });
+
+  return (
+    <group ref={armRef} position={[0, 8, 0]}>
+      <mesh>
+        <boxGeometry args={[1.5, 6, 1.5]} />
+        <meshStandardMaterial color="#ffffff" emissive="#222222" metalness={0.6} roughness={0.1} />
+      </mesh>
+      <mesh position={[0, -3.2, 0]}>
+        <boxGeometry args={[2.0, 0.8, 2.0]} />
+        <meshStandardMaterial color="#dddddd" emissive="#111111" metalness={0.6} roughness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+const ADJECTIVES = [
+  "PUNY", "CLUMSY", "PITIFUL", "AWKWARD", "USELESS", "PATHETIC", "FEEBLE", "WEAK",
+  "HOPEFUL", "EAGER", "STEADY", "WILLING", "CAPABLE", "SKILLED", "PRACTICED", "SEASONED",
+  "RECKLESS", "DANGEROUS", "BATTLE-SCARRED", "BLOODTHIRSTY", "RUTHLESS", "MERCILESS",
+  "FEARLESS", "VALIANT", "HEROIC", "GLORIOUS", "RENOWNED", "FAMOUS", "LEGENDARY",
+  "EXALTED", "MYTHIC", "SUPREME", "TRANSCENDENT", "OMNIPOTENT", "GODLIKE",
+  "ABSOLUTE", "INFINITE", "ETERNAL", "COSMIC", "UNIVERSAL", "ASTRAL",
+  "DIMENSIONAL", "ALMIGHTY", "UNSTOPPABLE", "UNBREAKABLE", "INVINCIBLE", 
+  "SUPERNAL", "CELESTIAL", "DIVINE", "ULTIMATE"
+];
+
+const NOUNS = [
+  { text: "COMMONER", color: "#ffffff", emissive: "#888888", intensity: 0.8 },
+  { text: "PEASANT", color: "#dddddd", emissive: "#aaaaaa", intensity: 0.8 },
+  { text: "SQUIRE", color: "#bbbbbb", emissive: "#888888", intensity: 0.8 },
+  { text: "APPRENTICE", color: "#aaffaa", emissive: "#55aa55", intensity: 0.8 },
+  { text: "NOVICE", color: "#55ff55", emissive: "#008800", intensity: 0.8 },
+  { text: "ACOLYTE", color: "#55ffaa", emissive: "#008855", intensity: 0.8 },
+  { text: "INITIATE", color: "#55ff55", emissive: "#008800", intensity: 0.8 },
+  { text: "JOURNEYMAN", color: "#aaff55", emissive: "#55aa00", intensity: 0.8 },
+  { text: "ADVENTURER", color: "#ffff55", emissive: "#aaaa00", intensity: 0.8 },
+  { text: "VETERAN", color: "#ffaa55", emissive: "#aa5500", intensity: 0.8 },
+  { text: "GLADIATOR", color: "#ff5555", emissive: "#aa0000", intensity: 0.8 },
+  { text: "HERO", color: "#00ff00", emissive: "#00aa00", intensity: 0.8 },
+  { text: "CHAMPION", color: "#00ffaa", emissive: "#00aa88", intensity: 0.8 },
+  { text: "MASTER", color: "#00ffff", emissive: "#00aaaa", intensity: 0.8 },
+  { text: "GRANDMASTER", color: "#0088ff", emissive: "#0044aa", intensity: 0.8 },
+  { text: "SAGE", color: "#0044ff", emissive: "#0000aa", intensity: 0.8 },
+  { text: "SCHOLAR", color: "#5500ff", emissive: "#0000ff", intensity: 0.8 },
+  { text: "ADEPT", color: "#8800ff", emissive: "#5500ff", intensity: 0.9 },
+  { text: "WARLOCK", color: "#aa00ff", emissive: "#8800ff", intensity: 1.0 },
+  { text: "ARCHMAGE", color: "#ff00ff", emissive: "#aa00ff", intensity: 1.1 },
+  { text: "AVATAR", color: "#aaffff", emissive: "#00ffff", intensity: 1.2 },
+  { text: "PALADIN", color: "#ffffaa", emissive: "#ffff00", intensity: 1.3 },
+  { text: "INQUISITOR", color: "#ff00aa", emissive: "#aa00aa", intensity: 1.4 },
+  { text: "WARLORD", color: "#ff0000", emissive: "#aa0000", intensity: 1.6 },
+  { text: "VANGUARD", color: "#dddddd", emissive: "#aaaaaa", intensity: 1.7 },
+  { text: "DEMIGOD", color: "#ff5500", emissive: "#ff0000", intensity: 1.8 },
+  { text: "DEITY", color: "#ffaa00", emissive: "#ff5500", intensity: 1.9 },
+  { text: "PANTHEON", color: "#ffff00", emissive: "#ffaa00", intensity: 2.0 },
+  { text: "PRIMORDIAL", color: "#ffff88", emissive: "#ffff00", intensity: 2.1 },
+  { text: "ENTITY", color: "#00aaff", emissive: "#00ffff", intensity: 2.2 },
+  { text: "DREADNOUGHT", color: "#ffffff", emissive: "#ff00aa", intensity: 2.3 },
+  { text: "SHIFTER", color: "#00ffff", emissive: "#0088ff", intensity: 2.4 },
+  { text: "WALKER", color: "#220044", emissive: "#8800ff", intensity: 2.5 },
+  { text: "LORDAEMON", color: "#440000", emissive: "#aa0000", intensity: 2.6 },
+  { text: "ELDER BRAIN", color: "#ff88ff", emissive: "#ff00ff", intensity: 2.8 },
+  { text: "LICH KING", color: "#00ffff", emissive: "#00ffff", intensity: 3.0 },
+  { text: "DESTROYER", color: "#ff0000", emissive: "#ffaa00", intensity: 3.2 },
+  { text: "TARRASQUE", color: "#ffffff", emissive: "#ff00ff", intensity: 3.5 },
+  { text: "UNWRITTEN RULE", color: "#000000", emissive: "#ff0000", intensity: 3.8 },
+  { text: "CREATOR", color: "#ffffff", emissive: "#ffffff", intensity: 4.0 },
+  { text: "ABSOLUTE GOD", color: "#000000", emissive: "#ffffff", intensity: 5.0 },
+  { text: "ANTIGRAVITY", color: "#ff00ff", emissive: "#00ffff", intensity: 6.0 }
+];
+
+function RankTitle({ count }: { count: number }) {
+  const maxNounThreshold = (NOUNS.length - 1) * ADJECTIVES.length;
+  
+  let nounIndex = Math.floor(count / ADJECTIVES.length);
+  let adjIndex = count % ADJECTIVES.length;
+
+  if (count >= maxNounThreshold) {
+    nounIndex = NOUNS.length - 1;
+    adjIndex = Math.min(count - maxNounThreshold, ADJECTIVES.length - 1);
+  }
+
+  const adjText = ADJECTIVES[adjIndex];
+  const nounObj = NOUNS[nounIndex];
+  const title = `${adjText}\n${nounObj.text}`;
+
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.2;
+      groupRef.current.position.y = 3.5 + Math.sin(state.clock.elapsedTime * 4) * 0.1;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[-3.5, 3.5, -1]}>
+      <Center>
+        <Text3D
+          font="https://cdn.jsdelivr.net/npm/three/examples/fonts/helvetiker_bold.typeface.json"
+          size={0.4}
+          height={0.2}
+          curveSegments={12}
+          bevelEnabled
+          bevelThickness={0.02}
+          bevelSize={0.01}
+          bevelOffset={0}
+          bevelSegments={3}
+          lineHeight={1.2}
+        >
+          {title}
+          <meshStandardMaterial color={nounObj.color} emissive={nounObj.emissive} emissiveIntensity={nounObj.intensity} metalness={0.5} roughness={0.2} toneMapped={false} />
+        </Text3D>
+      </Center>
+    </group>
+  );
+}
+
+function FloatingText({ id, startPos, onComplete }: { id: number, startPos: [number, number, number], onComplete: (id: number) => void }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.position.y += delta * 5; 
+      groupRef.current.position.x += Math.sin(state.clock.elapsedTime * 8 + id) * 0.03; 
+      
+      if (materialRef.current) {
+        materialRef.current.opacity -= delta * 0.7; 
+        if (materialRef.current.opacity <= 0) {
+          onComplete(id);
+        }
+      }
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={startPos}>
+      <Center>
+        <Text3D
+          font="https://cdn.jsdelivr.net/npm/three/examples/fonts/helvetiker_bold.typeface.json"
+          size={1.0}
+          height={0.2}
+          curveSegments={12}
+          bevelEnabled
+          bevelThickness={0.03}
+          bevelSize={0.02}
+          bevelOffset={0}
+          bevelSegments={3}
+        >
+          YOU NB!!!
+          <meshStandardMaterial 
+            ref={materialRef} 
+            color="#ffff00" 
+            emissive="#ff0088" 
+            emissiveIntensity={2.5} 
+            transparent 
+            opacity={1} 
+            toneMapped={false}
+            metalness={0.8}
+            roughness={0.1}
+          />
+        </Text3D>
+      </Center>
+    </group>
+  );
+}
+
+function ButtonModel({ onClick, isPressed }: { onClick: () => void, isPressed: boolean }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.position.y = THREE.MathUtils.lerp(
+        meshRef.current.position.y,
+        isPressed ? -0.3 : 0,
+        0.5
+      );
+    }
+  });
+
+  return (
+    <group position={[0, -1, 0]}>
+      <mesh position={[0, -0.5, 0]}>
+        <cylinderGeometry args={[2.5, 2.8, 1, 32]} />
+        <meshStandardMaterial color="#222222" metalness={0.8} roughness={0.4} />
+      </mesh>
+      
+      <mesh 
+        ref={meshRef} 
+        position={[0, 0, 0]} 
+        onClick={(e) => { e.stopPropagation(); onClick(); }} 
+        onPointerOver={() => document.body.style.cursor = 'pointer'} 
+        onPointerOut={() => document.body.style.cursor = 'auto'}
+      >
+        <cylinderGeometry args={[2.3, 2.3, 1, 32]} />
+        <meshStandardMaterial 
+          color={isPressed ? "#cc0000" : "#ff0033"} 
+          emissive={isPressed ? "#ff0000" : "#550000"} 
+          emissiveIntensity={isPressed ? 1 : 0.2} 
+          metalness={0.3} 
+          roughness={0.2} 
+        />
+      </mesh>
+    </group>
+  );
+}
+
+export default function AngryButton3D({ userId }: { userId: string }) {
+  const [count, setCount] = useState(0);
+  const [rebirths, setRebirths] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isPressed, setIsPressed] = useState(false);
+  const [floatingTexts, setFloatingTexts] = useState<{id: number, pos: [number, number, number]}[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("user_clicks")
+      .select("click_count, rebirths")
+      .eq("user_id", userId)
+      .single()
+      .then(({ data, error }) => {
+        if (data) {
+          setCount(data.click_count || 0);
+          setRebirths(data.rebirths || 0);
+        } else if (error && error.code === 'PGRST116') {
+          supabase.from("user_clicks").insert([{ user_id: userId, click_count: 0, rebirths: 0 }]).then();
+        }
+        setLoading(false);
+      });
+  }, [userId]);
+
+  const handleFloatingTextComplete = (id: number) => {
+    setFloatingTexts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleClick = async () => {
+    const clickPower = Math.pow(2, rebirths);
+    const newCount = count + clickPower;
+    setCount(newCount);
+    setIsPressed(true);
+    setTimeout(() => setIsPressed(false), 150);
+
+    if (Math.random() < 0.15) {
+      const id = Date.now() + Math.random();
+      const pos: [number, number, number] = [(Math.random() - 0.5) * 6, -1, (Math.random() - 0.5) * 3];
+      setFloatingTexts(prev => [...prev, { id, pos }]);
+    }
+
+    await supabase
+      .from("user_clicks")
+      .upsert({ user_id: userId, click_count: newCount, rebirths });
+  };
+
+  const handleRebirth = async () => {
+    const newRebirths = rebirths + 1;
+    setRebirths(newRebirths);
+    setCount(0);
+    await supabase
+      .from("user_clicks")
+      .upsert({ user_id: userId, click_count: 0, rebirths: newRebirths });
+  };
+
+  const reqClicks = Math.floor(500 * Math.pow(1.5, rebirths));
+  const canRebirth = count >= reqClicks;
+
+  return (
+    <div style={{ width: "100%", height: "400px", position: "relative", marginBottom: "30px", border: "5px inset #ff00ff", backgroundColor: "#000033", overflow: "hidden" }}>
+      {loading && (
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 10 }}>
+          <p className="blink-text rainbow-text" style={{ fontSize: "1.5rem", margin: 0 }}>读取记录中 LOADING...</p>
+        </div>
+      )}
+
+      {!loading && canRebirth && (
+        <div style={{ position: "absolute", top: "20px", left: "20px", zIndex: 20 }}>
+          <button 
+            onClick={handleRebirth}
+            className="blink-text"
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#ff00ff",
+              color: "#ffffff",
+              border: "3px outset #ff00ff",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+              fontWeight: "bold",
+              textShadow: "2px 2px #000"
+            }}
+          >
+            🔥 ASCEND (REBIRTH) 🔥
+          </button>
+        </div>
+      )}
+
+      {!loading && (
+        <div style={{ position: "absolute", bottom: "10px", left: "10px", zIndex: 10 }}>
+          <p style={{ color: "#00ffff", margin: 0, textShadow: "1px 1px #000", fontFamily: "monospace", fontSize: "1.2rem", fontWeight: "bold" }}>
+            牛逼指数: +{Math.pow(1.6, rebirths)}
+          </p>
+        </div>
+      )}
+
+      <Canvas camera={{ position: [0, 5, 10], fov: 45 }}>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1.5} color="#ffffff" />
+        <directionalLight position={[-10, 5, -5]} intensity={2} color="#ff00ff" />
+        <React.Suspense fallback={null}>
+          <ButtonModel onClick={handleClick} isPressed={isPressed} />
+          <OrbitingCount count={count} />
+          <PressArm isPressed={isPressed} />
+          <RankTitle count={count} />
+          
+          {floatingTexts.map(ft => (
+            <FloatingText key={ft.id} id={ft.id} startPos={ft.pos} onComplete={handleFloatingTextComplete} />
+          ))}
+
+          <ContactShadows position={[0, -1.5, 0]} opacity={1} scale={15} blur={1.5} far={4} color="#000000" />
+          <EffectComposer>
+            <Bloom luminanceThreshold={1.2} mipmapBlur intensity={1.5} />
+          </EffectComposer>
+        </React.Suspense>
+      </Canvas>
+    </div>
+  );
+}

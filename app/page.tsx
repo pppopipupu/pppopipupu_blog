@@ -202,6 +202,36 @@ export default function Home() {
         </tbody>
       </table>
 
+      <h2 className="blink-text" style={{ color: "#00ffff", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff00ff" }}>
+        🕹️🕹️🕹️ 超牛逼的好玩游戏，快来玩 🕹️🕹️🕹️
+      </h2>
+      <div style={{
+        border: "5px outset #ff00ff",
+        backgroundColor: "#000080",
+        width: "80%",
+        maxWidth: "800px",
+        textAlign: "center",
+        padding: "15px",
+        marginBottom: "30px",
+        boxShadow: "6px 6px 0px #00ffff"
+      }}>
+        <Link href="/games" style={{ textDecoration: "none" }}>
+          <div style={{
+            border: "3px inset #00ffff",
+            backgroundColor: "#000044",
+            padding: "20px",
+            cursor: "crosshair"
+          }}>
+            <p className="rainbow-text" style={{ fontSize: "2rem", margin: "0 0 10px 0", fontWeight: "bold" }}>
+              ▶ 点我，求你了 ◀
+            </p>
+            <p style={{ color: "#ffff00", margin: 0, fontSize: "1rem" }}>
+              😡 NB GAME MUST PLAY 😡
+            </p>
+          </div>
+        </Link>
+      </div>
+
       <h2 className="blink-text" style={{ color: "#ffff00", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff0000" }}>
         ★★★ My Articles ★★★
       </h2>
