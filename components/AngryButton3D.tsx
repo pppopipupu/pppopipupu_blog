@@ -146,7 +146,7 @@ const NOUNS = [
   { text: "ARCHITECT", color: "#ffffff", emissive: "#aaffff", intensity: 3.9 },
   { text: "CREATOR", color: "#ffffff", emissive: "#ffffff", intensity: 4.0 },
   { text: "ABSOLUTE GOD", color: "#000000", emissive: "#ffffff", intensity: 5.0 },
-  { text: "ANTIGRAVITY", color: "#ff00ff", emissive: "#00ffff", intensity: 6.0 }
+  { text: "PPPOPIPUPU", color: "#ff00ff", emissive: "#00ffff", intensity: 6.0 }
 ];
 
 const NOUN_THRESHOLDS = [0];
