@@ -203,6 +203,10 @@ export default function Home() {
             <td><span className="bouncing-text" style={{ animationDuration: '0.51s, 0.38s', animationDelay: '-0.2s, -0.6s' }}><a href="https://steamcommunity.com/profiles/76561199106950429/">STEAM</a></span></td>
             <td><span className="bouncing-text" style={{ animationDuration: '0.45s, 0.61s', animationDelay: '-0.5s, -0.1s' }}>我的steam，快来加我好友😡</span></td>
           </tr>
+          <tr>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.47s, 0.42s', animationDelay: '-0.3s, -0.7s' }}><a href="https://github.com/pppopipupu/pppopipupu_blog">GITHUB</a></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.39s, 0.55s', animationDelay: '-0.6s, -0.4s' }}>本站源码，给我star😡</span></td>
+          </tr>
         </tbody>
       </table>
 
