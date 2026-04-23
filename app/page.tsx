@@ -289,12 +289,12 @@ export default function Home() {
           repoId="R_kgDOSGKrKw"
           category="General"
           categoryId="DIC_kwDOSGKrK84C7SKr"
-          mapping="pathname"
-          term="Welcome to @giscus/react component!"
+          mapping="specific"
+          term="pppopipupu_blog"
           reactionsEnabled="1"
           emitMetadata="0"
           inputPosition="top"
-          theme="https://pppopipupu.github.io/pppopipupu_blog/giscus-y2k.css"
+          theme={typeof window !== 'undefined' ? `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ''}/giscus-y2k.css` : "dark"}
           lang="zh-CN"
           loading="lazy"
         />
