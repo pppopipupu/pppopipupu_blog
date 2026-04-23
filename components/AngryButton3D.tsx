@@ -339,7 +339,7 @@ export default function AngryButton3D({ userId }: { userId: string }) {
     setIsPressed(true);
     setTimeout(() => setIsPressed(false), 150);
 
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.30) {
       const id = Date.now() + Math.random();
       const pos: [number, number, number] = [(Math.random() - 0.5) * 6, -1, (Math.random() - 0.5) * 3];
       setFloatingTexts(prev => [...prev, { id, pos }]);
