@@ -294,7 +294,7 @@ export default function Home() {
           reactionsEnabled="1"
           emitMetadata="0"
           inputPosition="top"
-          theme={typeof window !== 'undefined' ? `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ''}/giscus-y2k.css` : "dark"}
+          theme="https://pppopipupu.github.io/pppopipupu_blog/giscus-y2k.css"
           lang="zh-CN"
           loading="lazy"
         />
