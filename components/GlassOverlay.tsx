@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 import * as THREE from "three";
 import { Delaunay } from "d3-delaunay";
@@ -303,35 +303,242 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
     </>
   );
 }
+function Mini3DWindow() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += delta * 0.5;
+      meshRef.current.rotation.y += delta * 1;
+    }
+  });
+
+  return (
+    <>
+      <ambientLight intensity={1} />
+      <directionalLight position={[2, 2, 2]} intensity={2} />
+      <mesh ref={meshRef}>
+        <torusKnotGeometry args={[1, 0.4, 100, 16]} />
+        <meshPhysicalMaterial 
+          color="#00ffff"
+          transmission={0.9}
+          transparent={true}
+          opacity={1}
+          roughness={0.1}
+          ior={1.5}
+          thickness={0.5}
+          emissive="#ff00ff"
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+    </>
+  );
+}
 
 export default function GlassOverlay() {
   const [active, setActive] = useState(true);
   const [isShattered, setIsShattered] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [skipNextTime, setSkipNextTime] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  if (!active) return null;
+  useEffect(() => {
+    setMounted(true);
+    const skip = localStorage.getItem("skipGlassOverlay") === "true";
+    if (skip) {
+      setActive(false);
+    }
+    setSkipNextTime(skip);
+  }, []);
+
+  const handleSkipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    if (checked) {
+      setShowConfirmModal(true);
+    } else {
+      setSkipNextTime(false);
+      localStorage.setItem("skipGlassOverlay", "false");
+      setActive(true);
+      setIsShattered(false);
+    }
+  };
+
+  const confirmSkip = () => {
+    setSkipNextTime(true);
+    localStorage.setItem("skipGlassOverlay", "true");
+    setShowConfirmModal(false);
+    setActive(false);
+  };
+
+  const cancelSkip = () => {
+    setShowConfirmModal(false);
+  };
+
+  if (!mounted) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 9999,
-        pointerEvents: isShattered ? "none" : "auto",
-        background: "transparent",
-      }}
-      className={isShattered ? "" : "backdrop-blur-sm"}
-    >
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
-        style={{ width: "100%", height: "100%", display: 'block', pointerEvents: isShattered ? "none" : "auto" }}
+    <>
+      {active && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 9999,
+            pointerEvents: isShattered ? "none" : "auto",
+            background: "transparent",
+          }}
+          className={isShattered ? "" : "backdrop-blur-sm"}
+        >
+          <Canvas
+            camera={{ position: [0, 0, 5], fov: 50 }}
+            style={{ width: "100%", height: "100%", display: 'block', pointerEvents: isShattered ? "none" : "auto" }}
+          >
+            <React.Suspense fallback={null}>
+              <Scene onShatter={() => setIsShattered(true)} onComplete={() => setActive(false)} />
+            </React.Suspense>
+          </Canvas>
+        </div>
+      )}
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: "30px",
+          right: "30px",
+          zIndex: 10000,
+          background: "linear-gradient(135deg, rgba(255, 0, 255, 0.4), rgba(0, 255, 255, 0.4))",
+          border: "2px solid #ffffff",
+          borderRadius: "0",
+          boxShadow: "0 0 10px #ff00ff, inset 0 0 10px #00ffff",
+          padding: "10px 15px",
+          fontFamily: "'Courier New', Courier, monospace",
+          color: "#ffffff",
+          textShadow: "1px 1px 2px #000000, 0 0 5px #ff00ff",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          pointerEvents: "auto",
+          backdropFilter: "blur(5px)",
+          transform: "rotate(-2deg)",
+          transition: "transform 0.2s ease-in-out",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = "rotate(0deg) scale(1.05)")}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "rotate(-2deg) scale(1)")}
       >
-        <React.Suspense fallback={null}>
-          <Scene onShatter={() => setIsShattered(true)} onComplete={() => setActive(false)} />
-        </React.Suspense>
-      </Canvas>
-    </div>
+        <input 
+          type="checkbox" 
+          id="skip-glass-overlay"
+          checked={skipNextTime}
+          onChange={handleSkipChange}
+          style={{
+            cursor: "pointer",
+            accentColor: "#ff00ff",
+            width: "18px",
+            height: "18px",
+            margin: 0,
+          }}
+        />
+        <label htmlFor="skip-glass-overlay" style={{ cursor: "pointer", fontSize: "14px", fontWeight: "bold", letterSpacing: "1px", userSelect: "none" }}>
+          不再显示特效
+        </label>
+      </div>
+
+      {showConfirmModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 20000,
+          background: "rgba(0, 0, 0, 0.7)",
+          backdropFilter: "blur(8px)",
+          pointerEvents: "auto",
+        }}>
+          <div style={{
+            width: "400px",
+            background: "linear-gradient(135deg, rgba(26,0,51,0.9), rgba(0,26,51,0.9))",
+            border: "3px solid #ff00ff",
+            borderRadius: "0",
+            boxShadow: "0 0 30px rgba(255,0,255,0.6), inset 0 0 20px rgba(0,255,255,0.4)",
+            padding: "25px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "20px",
+            fontFamily: "'Courier New', Courier, monospace",
+            color: "#ffffff",
+          }}>
+            <h3 style={{ margin: 0, textAlign: "center", textShadow: "3px 3px 0px #ff00ff, -1px -1px 0 #00ffff", fontSize: "22px", letterSpacing: "2px", fontWeight: "900" }}>
+              SYSTEM WARNING
+            </h3>
+            <p style={{ margin: 0, textAlign: "center", fontSize: "16px", lineHeight: "1.6", fontWeight: "bold", textShadow: "0 0 5px #fff" }}>
+              真的要关闭超牛逼碎玻璃特效吗😢🥹🥹
+            </p>
+            
+            <div style={{ 
+              width: "100%", 
+              height: "180px", 
+              border: "3px solid #00ffff", 
+              borderRadius: "0", 
+              overflow: "hidden", 
+              background: "radial-gradient(circle, #2a0033 0%, #000000 100%)",
+              boxShadow: "0 0 15px #00ffff"
+            }}>
+              <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
+                <Mini3DWindow />
+              </Canvas>
+            </div>
+
+            <div style={{ display: "flex", gap: "20px", width: "100%", marginTop: "10px" }}>
+              <button 
+                onClick={confirmSkip}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  background: "rgba(255, 0, 255, 0.1)",
+                  border: "2px solid #ff00ff",
+                  color: "#ff00ff",
+                  fontFamily: "inherit",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  borderRadius: "0",
+                  boxShadow: "0 0 10px rgba(255, 0, 255, 0.4)",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255, 0, 255, 0.4)"; e.currentTarget.style.boxShadow = "0 0 20px #ff00ff"; e.currentTarget.style.transform = "scale(1.05)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255, 0, 255, 0.1)"; e.currentTarget.style.boxShadow = "0 0 10px rgba(255, 0, 255, 0.4)"; e.currentTarget.style.transform = "scale(1)"; }}
+              >
+                YES (确认关闭)
+              </button>
+              <button 
+                onClick={cancelSkip}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  background: "rgba(0, 255, 255, 0.1)",
+                  border: "2px solid #00ffff",
+                  color: "#00ffff",
+                  fontFamily: "inherit",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  borderRadius: "0",
+                  boxShadow: "0 0 10px rgba(0, 255, 255, 0.4)",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0, 255, 255, 0.4)"; e.currentTarget.style.boxShadow = "0 0 20px #00ffff"; e.currentTarget.style.transform = "scale(1.05)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0, 255, 255, 0.1)"; e.currentTarget.style.boxShadow = "0 0 10px rgba(0, 255, 255, 0.4)"; e.currentTarget.style.transform = "scale(1)"; }}
+              >
+                NO (我再看看)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
