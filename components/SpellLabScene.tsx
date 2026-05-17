@@ -324,11 +324,11 @@ function SceneContent({
     if (spell === "fireball") {
         setFireballs((prev) => [...prev, { pos: point.clone(), id }]);
         setTimeout(() => {
-          shakeIntensity.current = 2.5;
-          setCraters((prev) => [...prev, { x: point.x, z: point.z, r: 2.5, d: 1.0 }]);
+          shakeIntensity.current = 4.0;
+          setCraters((prev) => [...prev, { x: point.x, z: point.z, r: 4.5, d: 1.5 }]);
           setFlashes((prev) => [...prev, { pos: point.clone(), color: "#ff6600", id }]);
           setDebris((prev) => [...prev, { pos: point.clone(), color: "#4a2d1a", id }]);
-          applyDamage((d) => d.pos.distanceTo(point) < 3.0, 8, 48, "#ff6600");
+          applyDamage((d) => d.pos.distanceTo(point) < 6.0, 15, 60, "#ff6600");
         }, 600);
       } else if (spell === "lightning") {
         const boltCount = 3 + Math.floor(Math.random() * 4);

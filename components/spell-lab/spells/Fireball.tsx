@@ -12,7 +12,7 @@ export function Fireball({ pos, onDone }: { pos: THREE.Vector3; onDone: () => vo
 
   const particleGeo = useMemo(() => {
     const g = new THREE.BufferGeometry();
-    const pCount = 200;
+    const pCount = 500;
     const p = new Float32Array(pCount * 3);
     const c = new Float32Array(pCount * 4);
     const v = new Float32Array(pCount * 3);
@@ -22,7 +22,7 @@ export function Fireball({ pos, onDone }: { pos: THREE.Vector3; onDone: () => vo
       c[i * 4 + 2] = 0; c[i * 4 + 3] = 1;
       const angle = Math.random() * Math.PI * 2;
       const elev = (Math.random() - 0.3) * Math.PI;
-      const speed = 2 + Math.random() * 6;
+      const speed = 5 + Math.random() * 15;
       v[i * 3] = Math.cos(angle) * Math.cos(elev) * speed;
       v[i * 3 + 1] = Math.sin(elev) * speed + 2;
       v[i * 3 + 2] = Math.sin(angle) * Math.cos(elev) * speed;
@@ -70,19 +70,19 @@ export function Fireball({ pos, onDone }: { pos: THREE.Vector3; onDone: () => vo
   return (
     <group ref={groupRef} position={startPos}>
       <mesh ref={ballRef}>
-        <icosahedronGeometry args={[0.5, 1]} />
+        <icosahedronGeometry args={[1.5, 1]} />
         <meshStandardMaterial
           color="#ff4400"
           emissive="#ff6600"
-          emissiveIntensity={4}
+          emissiveIntensity={6}
           flatShading
           toneMapped={false}
         />
       </mesh>
-      <pointLight color="#ff4400" intensity={20} distance={15} />
+      <pointLight color="#ff4400" intensity={50} distance={40} />
       <points ref={particlesRef} visible={false} position={[0, 0, 0]} geometry={particleGeo}>
         <pointsMaterial
-          size={0.3}
+          size={0.6}
           vertexColors
           transparent
           depthWrite={false}

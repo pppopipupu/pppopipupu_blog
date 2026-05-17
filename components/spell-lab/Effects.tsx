@@ -23,17 +23,17 @@ export function DebrisParticles({ pos, color, onDone }: { pos: THREE.Vector3; co
   const life = useRef(0);
   
   const particles = useMemo(() => {
-    const count = 15 + Math.floor(Math.random() * 10); // 生成15-25个碎块
+    const count = 20 + Math.floor(Math.random() * 15); // 生成20-35个碎块
     const data = [];
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
-      const s = 4 + Math.random() * 8; // 抛射初速度
+      const s = 5 + Math.random() * 10; // 抛射初速度
       data.push({
         p: new THREE.Vector3(pos.x, pos.y + 0.5, pos.z),
-        v: new THREE.Vector3(Math.cos(a) * s, 6 + Math.random() * 10, Math.sin(a) * s),
+        v: new THREE.Vector3(Math.cos(a) * s, 8 + Math.random() * 12, Math.sin(a) * s),
         r: new THREE.Vector3(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
         rv: new THREE.Vector3((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10), // 自转角速度
-        scale: 0.4 + Math.random() * 0.8 // 碎块随机大小
+        scale: 0.5 + Math.random() * 0.8 // 碎块随机大小
       });
     }
     return data;
@@ -46,29 +46,48 @@ export function DebrisParticles({ pos, color, onDone }: { pos: THREE.Vector3; co
     if (meshRef.current) {
       for (let i = 0; i < particles.length; i++) {
         const pt = particles[i];
-        if (pt.p.y > -2) { // 直到掉落地表以下才停止运动
-          pt.p.addScaledVector(pt.v, delta);
-          pt.v.y -= 35 * delta; // 重力加速度
-          pt.r.addScaledVector(pt.rv, delta); // 自转
+        
+        pt.v.y -= 45 * delta;
+        pt.p.addScaledVector(pt.v, delta);
+
+        const groundY = 0.3 * pt.scale;
+        if (pt.p.y <= groundY) {
+          pt.p.y = groundY;
+          if (pt.v.y < -3) {
+            pt.v.y = -pt.v.y * 0.4;
+            pt.v.x *= 0.7;
+            pt.v.z *= 0.7;
+            pt.r.addScaledVector(pt.rv, delta);
+          } else {
+            pt.v.y = 0;
+            const friction = Math.max(0, 1 - 4 * delta);
+            pt.v.x *= friction;
+            pt.v.z *= friction;
+            
+            pt.r.x += pt.v.z * delta * 2.5;
+            pt.r.z -= pt.v.x * delta * 2.5;
+          }
+        } else {
+          pt.r.addScaledVector(pt.rv, delta);
         }
+
         dummy.position.copy(pt.p);
         dummy.rotation.set(pt.r.x, pt.r.y, pt.r.z);
-        // 后期缩小消失
-        const shrink = Math.max(0, 1 - life.current / 2.0);
+        const shrink = Math.max(0, 1 - Math.max(0, life.current - 2.5) / 1.5);
         dummy.scale.setScalar(pt.scale * shrink);
         dummy.updateMatrix();
         meshRef.current.setMatrixAt(i, dummy.matrix);
       }
       meshRef.current.instanceMatrix.needsUpdate = true;
-      (meshRef.current.material as THREE.MeshStandardMaterial).opacity = Math.max(0, 1 - life.current / 2.0);
+      (meshRef.current.material as THREE.MeshStandardMaterial).opacity = Math.max(0, 1 - Math.max(0, life.current - 2.5) / 1.5);
     }
-    if (life.current > 2.0) onDone();
+    if (life.current > 4.0) onDone();
   });
 
   return (
     <instancedMesh ref={meshRef} args={[null as any, null as any, particles.length]}>
-      <dodecahedronGeometry args={[0.8, 0]} /> {/* 0细分的十二面体，标准的低多边形块 */}
-      <meshStandardMaterial color={color} roughness={0.9} transparent />
+      <dodecahedronGeometry args={[0.8, 0]} />
+      <meshStandardMaterial color="#4a2d1a" roughness={0.9} transparent />
     </instancedMesh>
   );
 }
