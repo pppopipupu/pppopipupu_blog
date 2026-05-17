@@ -441,7 +441,7 @@ export default function GlassOverlay() {
           }}
         />
         <label htmlFor="skip-glass-overlay" style={{ cursor: "pointer", fontSize: "14px", fontWeight: "bold", letterSpacing: "1px", userSelect: "none" }}>
-          不再显示特效
+          不再显示玻璃特效
         </label>
       </div>
 

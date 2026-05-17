@@ -23,6 +23,18 @@ export default function RootLayout({
         <DynamicGlassOverlay />
         <DynamicArcaneCursorTrail />
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  var basePath = '${process.env.NEXT_PUBLIC_BASE_PATH || ""}';
+                  navigator.serviceWorker.register(basePath + '/sw.js', { scope: basePath + '/' });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

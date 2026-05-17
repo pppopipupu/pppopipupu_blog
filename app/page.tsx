@@ -210,6 +210,71 @@ export default function Home() {
         </tbody>
       </table>
 
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .spell-gradient-text {
+            background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0088ff, #ff00ff, #ff0000);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+          }
+          .spell-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+          }
+          .spell-btn {
+            transition: transform 0.2s, box-shadow 0.2s;
+          }
+        `
+      }} />
+
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "80%",
+        maxWidth: "800px",
+        marginTop: "40px",
+        marginBottom: "30px",
+      }}>
+        <Link href="/spell-lab" style={{ textDecoration: "none" }}>
+          <div className="spell-btn" style={{
+            border: "5px outset #ff00ff",
+            backgroundColor: "#0a0040",
+            padding: "25px 60px",
+            cursor: "crosshair",
+            textAlign: "center",
+            boxShadow: "6px 6px 0px #00ffff, inset 0 0 40px rgba(255,0,255,0.15)",
+          }}>
+            <span style={{
+              fontSize: "2.8rem",
+              fontWeight: "bold",
+              color: "#ffff00",
+              textShadow: "3px 3px 0px #ff0000, -2px -2px 0px #00ffff, 0 0 20px #ff00ff",
+              letterSpacing: "0.15em",
+            }}>
+              法术试验场
+            </span>
+          </div>
+        </Link>
+        <p className="spell-gradient-text" style={{
+          fontSize: "1.6rem",
+          fontWeight: "bold",
+          marginTop: "12px",
+          letterSpacing: "0.1em",
+        }}>
+          来释放火球术吧！
+        </p>
+      </div>
+
       <h2 className="blink-text" style={{ color: "#00ffff", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff00ff" }}>
         🕹️🕹️🕹️ 超牛逼的好玩游戏，快来玩 🕹️🕹️🕹️
       </h2>
