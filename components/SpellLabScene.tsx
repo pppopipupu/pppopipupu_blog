@@ -178,7 +178,7 @@ function GrassBlades({ craters }: { craters: { x: number; z: number; r: number; 
 }
 
 /* ==================== Camera Shake ==================== */
-function KeyboardControls({ controlsRef }: { controlsRef: React.RefObject<{ target: THREE.Vector3 } | null> }) {
+function KeyboardControls({ controlsRef }: { controlsRef: React.RefObject<import("three-stdlib").OrbitControls | null> }) {
   const { camera } = useThree();
   const keys = useRef<{ [key: string]: boolean }>({});
   
@@ -504,7 +504,7 @@ function SceneContent({
         ))}
       </SceneShake>
 
-      <EffectComposer disableNormalPass>
+      <EffectComposer>
         <Bloom luminanceThreshold={1.0} mipmapBlur intensity={2.5} radius={0.5} />
       </EffectComposer>
     </>
@@ -521,7 +521,7 @@ export default function SpellLabScene({
   onReset?: () => void;
 }) {
   const shakeIntensity = useRef(0);
-  const controlsRef = useRef<{ target: THREE.Vector3 } | null>(null);
+  const controlsRef = useRef<import("three-stdlib").OrbitControls | null>(null);
 
   return (
     <Canvas
@@ -538,7 +538,7 @@ export default function SpellLabScene({
         ref={controlsRef}
         makeDefault
         mouseButtons={{
-          LEFT: THREE.MOUSE.NONE,
+          LEFT: -1 as THREE.MOUSE,
           MIDDLE: THREE.MOUSE.ROTATE,
           RIGHT: THREE.MOUSE.PAN
         }}

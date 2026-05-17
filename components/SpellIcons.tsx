@@ -35,7 +35,7 @@ function FireballContent({ active }: { active: boolean }) {
         <meshBasicMaterial color={active ? "#ff6600" : "#882200"} wireframe={!active} />
       </mesh>
       {active && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer>
           <Bloom luminanceThreshold={0.2} mipmapBlur intensity={2} radius={0.5} />
         </EffectComposer>
       )}
@@ -84,7 +84,7 @@ function LightningContent({ active }: { active: boolean }) {
         </mesh>
       </group>
       {active && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer>
           <Bloom luminanceThreshold={0.2} mipmapBlur intensity={3} radius={0.5} />
         </EffectComposer>
       )}
@@ -128,7 +128,7 @@ function DisintegrateContent({ active }: { active: boolean }) {
         <meshBasicMaterial color={active ? "#00ff00" : "#004400"} wireframe={!active} />
       </mesh>
       {active && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer>
           <Bloom luminanceThreshold={0.2} mipmapBlur intensity={3} radius={0.5} />
         </EffectComposer>
       )}
@@ -180,7 +180,7 @@ function PrismaticWallContent({ active }: { active: boolean }) {
         ))}
       </group>
       {active && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer>
           <Bloom luminanceThreshold={0.2} mipmapBlur intensity={2} radius={0.5} />
         </EffectComposer>
       )}
