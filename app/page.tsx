@@ -15,6 +15,7 @@ function RotatingGradientText() {
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime);
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 1.5;
     }
     if (materialRef.current) {
       materialRef.current.emissiveIntensity = 1.5 + Math.sin(state.clock.elapsedTime * 10);
