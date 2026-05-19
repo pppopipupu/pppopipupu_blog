@@ -210,8 +210,8 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
       let cx = origin.x, cy = origin.y;
 
       let angle = Math.random() * Math.PI * 2;
-      let length = Math.random() * 2 + 2;
-      let segments = Math.floor(Math.random() * 10) + 5;
+      const length = Math.random() * 2 + 2;
+      const segments = Math.floor(Math.random() * 10) + 5;
 
       for (let j = 0; j < segments; j++) {
         angle += (Math.random() - 0.5) * 0.8;
@@ -225,7 +225,7 @@ function Scene({ onComplete, onShatter }: { onComplete: () => void, onShatter: (
           const forkPoints = [new THREE.Vector3(cx, cy, 0)];
           let forkAngle = angle + (Math.random() > 0.5 ? 0.8 : -0.8);
           let fx = cx, fy = cy;
-          let forkSegments = Math.floor(segments / 2);
+          const forkSegments = Math.floor(segments / 2);
           for (let k = 0; k < forkSegments; k++) {
             forkAngle += (Math.random() - 0.5) * 0.5;
             fx += Math.cos(forkAngle) * stepLength;

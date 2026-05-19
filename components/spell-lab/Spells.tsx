@@ -9,3 +9,4 @@ export * from "./spells/InfiniteTerrain";
 export * from "./spells/FluidSimulation";
 export * from "./Effects";
 export * from "./entities/StructureEntity";
+export * from "./entities/PlantEntity";

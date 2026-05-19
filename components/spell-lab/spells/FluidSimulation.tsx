@@ -15,7 +15,7 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
 
   const tGrid = useRef(new Float32Array(SIZE * SIZE));
   const wGrid = useRef(new Float32Array(SIZE * SIZE));
-  
+
   const flowL = useRef(new Float32Array(SIZE * SIZE));
   const flowR = useRef(new Float32Array(SIZE * SIZE));
   const flowU = useRef(new Float32Array(SIZE * SIZE));
@@ -77,12 +77,80 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
   const geo = useMemo(() => {
     const g = new THREE.PlaneGeometry(range, range, SIZE - 1, SIZE - 1);
     g.rotateX(-Math.PI * 0.5);
+    const colors = new Float32Array(SIZE * SIZE * 3);
+    g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     return g;
   }, [range]);
 
+  const mat = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+      uniforms: {
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        varying vec3 vColor;
+        varying vec3 vViewPosition;
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+          vColor = color;
+          vNormal = normalize(normalMatrix * normal);
+          vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPos.xyz;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vViewPosition = -mvPosition.xyz;
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3 vColor;
+        varying vec3 vViewPosition;
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+          float depth = vColor.r;
+
+          if (depth <= 0.08) {
+            discard;
+          }
+
+          float alpha = smoothstep(0.08, 0.4, depth) * 0.75;
+
+          vec3 shallowColor = vec3(0.0, 0.95, 1.0);
+          vec3 deepColor = vec3(0.0, 0.12, 0.45);
+          vec3 waterColor = mix(shallowColor, deepColor, smoothstep(0.08, 1.8, depth));
+
+          vec2 flowDir = vec2(0.3, 0.2) * uTime;
+          vec2 posUV = vWorldPosition.xz * 0.25;
+          float wave1 = sin((posUV.x - flowDir.x) * 3.0) * cos((posUV.y - flowDir.y) * 3.0) * 0.5 + 0.5;
+          float wave2 = sin((posUV.y - flowDir.y * 1.5) * 5.0) * cos((posUV.x - flowDir.x * 0.7) * 5.0) * 0.5 + 0.5;
+          float caustics = pow(mix(wave1, wave2, 0.5), 4.0) * 0.22;
+
+          float foamStrength = smoothstep(0.18, 0.08, depth);
+          float foamNoise = sin(uTime * 4.5 + vWorldPosition.x * 8.0) * cos(uTime * 3.5 + vWorldPosition.z * 8.0) * 0.5 + 0.5;
+          vec3 foamColor = vec3(1.0, 1.0, 1.0) * foamStrength * foamNoise * 0.35;
+
+          vec3 finalColor = waterColor + vec3(caustics) + foamColor;
+
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `,
+    });
+  }, []);
+
   useFrame((state, delta) => {
     const dt = Math.min(0.03, delta);
-    
+
     const t = tGrid.current;
     const w = wGrid.current;
 
@@ -156,6 +224,8 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
       const g = meshRef.current.geometry as THREE.PlaneGeometry;
       const pos = g.attributes.position;
       const arr = pos.array as Float32Array;
+      const colAttr = g.attributes.color as THREE.BufferAttribute;
+      const colArr = colAttr.array as Float32Array;
       const time = state.clock.elapsedTime;
 
       for (let z = 0; z < SIZE; z++) {
@@ -163,6 +233,11 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
           const idx = x + z * SIZE;
           const localW = w[idx];
           const vertexIdx = x + z * SIZE;
+
+          colArr[vertexIdx * 3] = localW;
+          colArr[vertexIdx * 3 + 1] = t[idx];
+          colArr[vertexIdx * 3 + 2] = 0;
+
           if (localW > 0.08) {
             const wave = Math.sin(x * 0.25 + time * 1.6) * 0.06 + Math.cos(z * 0.25 + time * 1.3) * 0.06;
             arr[vertexIdx * 3 + 1] = t[idx] + localW + wave;
@@ -172,23 +247,14 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
         }
       }
       pos.needsUpdate = true;
+      colAttr.needsUpdate = true;
       g.computeVertexNormals();
     }
+
+    mat.uniforms.uTime.value = state.clock.elapsedTime;
   });
 
   return (
-    <mesh ref={meshRef} position={[centerWorldX, 0, centerWorldZ]} geometry={geo} receiveShadow>
-      <meshStandardMaterial
-        transparent
-        opacity={0.65}
-        color="#005d6e"
-        roughness={0.1}
-        metalness={0.8}
-        side={THREE.DoubleSide}
-        polygonOffset
-        polygonOffsetFactor={-1}
-        polygonOffsetUnits={-1}
-      />
-    </mesh>
+    <mesh ref={meshRef} position={[centerWorldX, 0, centerWorldZ]} geometry={geo} material={mat} receiveShadow />
   );
 }

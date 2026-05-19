@@ -20,7 +20,7 @@ export default function SpellLab() {
   const [selectedSpell, setSelectedSpell] = useState<SpellType>("fireball");
   const [viewDistance, setViewDistance] = useState<number>(3);
   const [fogEnabled, setFogEnabled] = useState<boolean>(true);
-  const [waterEnabled, setWaterEnabled] = useState<boolean>(false);
+  const [waterEnabled, setWaterEnabled] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [dbCastCount, setDbCastCount] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +29,9 @@ export default function SpellLab() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+        return;
+      }
       if (e.key.toLowerCase() === "q") {
         setFirstPerson((prev) => {
           const next = !prev;
@@ -36,6 +39,13 @@ export default function SpellLab() {
             setPlayerHp(100);
           }
           return next;
+        });
+      }
+      if (e.key.toLowerCase() === "e") {
+        setSelectedSpell((prev) => {
+          const currentIndex = SPELLS.findIndex((s) => s.id === prev);
+          const nextIndex = (currentIndex + 1) % SPELLS.length;
+          return SPELLS[nextIndex].id;
         });
       }
     };
@@ -110,7 +120,7 @@ export default function SpellLab() {
     requestAnimationFrame(() => {
       if (savedDist !== null) {
         const num = parseInt(savedDist, 10);
-        if (!isNaN(num) && num >= 1 && num <= 5) {
+        if (!isNaN(num) && num >= 1 && num <= 10) {
           setViewDistance(num);
         }
       }
@@ -119,6 +129,8 @@ export default function SpellLab() {
       }
       if (savedWater !== null) {
         setWaterEnabled(savedWater === "true");
+      } else {
+        setWaterEnabled(true);
       }
     });
   }, []);
@@ -161,6 +173,40 @@ export default function SpellLab() {
         overflow: "hidden",
       }}
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        .y2k-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 150px;
+          height: 12px;
+          background: #020206;
+          border: 3px inset #ff00ff !important;
+          outline: none;
+          margin: 0;
+          border-radius: 0 !important;
+          box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+        }
+        .y2k-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 14px;
+          height: 24px;
+          background: #00ffff !important;
+          border: 3px outset #00ffff !important;
+          cursor: pointer;
+          border-radius: 0 !important;
+          box-shadow: 0 0 8px rgba(0,255,255,0.8);
+        }
+        .y2k-slider::-moz-range-thumb {
+          width: 14px;
+          height: 24px;
+          background: #00ffff !important;
+          border: 3px outset #00ffff !important;
+          cursor: pointer;
+          border-radius: 0 !important;
+          box-shadow: 0 0 8px rgba(0,255,255,0.8);
+        }
+      ` }} />
       <h1
         style={{
           fontSize: "3rem",
@@ -241,33 +287,31 @@ export default function SpellLab() {
         }}
       >
         <span style={{ fontSize: "1rem", fontWeight: "bold", letterSpacing: "1px" }}>渲染视距:</span>
-        <div style={{ display: "flex", gap: "6px" }}>
-          {[1, 2, 3, 4, 5].map((dist) => (
-            <button
-              key={dist}
-              onClick={() => setViewDistance(dist)}
-              style={{
-                width: "36px",
-                height: "30px",
-                border: viewDistance === dist ? "3px inset #00ffff" : "3px outset #555",
-                backgroundColor: viewDistance === dist ? "#00ffff33" : "#111",
-                color: viewDistance === dist ? "#00ffff" : "#888",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                cursor: "pointer",
-                transition: "all 0.1s",
-              }}
-            >
-              {dist}
-            </button>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <input
+            type="range"
+            min="1"
+            max="10"
+            step="1"
+            value={viewDistance}
+            onChange={(e) => setViewDistance(Number(e.target.value))}
+            className="y2k-slider"
+          />
+          <span style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#00ffff", minWidth: "24px", textAlign: "center" }}>
+            {viewDistance}
+          </span>
         </div>
-        <span style={{ fontSize: "0.85rem", color: "#ff00ff" }}>
+        <span style={{ fontSize: "0.85rem", color: "#ff00ff", minWidth: "120px" }}>
           {viewDistance === 1 && "极近 (极速)"}
-          {viewDistance === 2 && "近 (流畅)"}
-          {viewDistance === 3 && "中 (平衡)"}
-          {viewDistance === 4 && "远 (宏伟)"}
-          {viewDistance === 5 && "极远 (震撼)"}
+          {viewDistance === 2 && "较近 (流畅)"}
+          {viewDistance === 3 && "中等 (平衡)"}
+          {viewDistance === 4 && "较远 (清晰)"}
+          {viewDistance === 5 && "远 (宏伟)"}
+          {viewDistance === 6 && "很远 (震撼)"}
+          {viewDistance === 7 && "超远 (极高)"}
+          {viewDistance === 8 && "完美 (电影级)"}
+          {viewDistance === 9 && "极致 (发烧级)"}
+          {viewDistance === 10 && "无限 (显卡杀手)"}
         </span>
 
         <button

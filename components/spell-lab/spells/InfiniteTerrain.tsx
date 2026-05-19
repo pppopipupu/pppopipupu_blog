@@ -21,7 +21,7 @@ function noise2D(x: number, z: number) {
   return a * (1 - ux) * (1 - uz) + b * ux * (1 - uz) + c * (1 - ux) * uz + d * ux * uz;
 }
 
-let waterEnabled = false;
+let waterEnabled = true;
 
 export function setWaterEnabled(val: boolean) {
   waterEnabled = val;
@@ -37,21 +37,29 @@ export function getTerrainHeight(x: number, z: number): { height: number; isWate
   const h3 = noise2D(x * 0.08, z * 0.08) * 3;
   const baseHeight = h1 + h2 + h3 - 5;
 
-  const w1 = noise2D((x + 1000) * 0.012, (z + 1000) * 0.012);
-  const w2 = noise2D((x + 1000) * 0.04, (z + 1000) * 0.04) * 0.3;
-  const waterDensity = w1 + w2;
+  const r1 = noise2D((x + 2000) * 0.005, (z + 2000) * 0.005);
+  const perturb = noise2D(x * 0.02, z * 0.02) * 0.025;
+  const riverVal = Math.abs(r1 + perturb - 0.5);
 
   let height = baseHeight;
-  const isWater = waterEnabled && waterDensity > 0.65;
+  const isWater = waterEnabled && riverVal < 0.04;
   const baseWaterLevel = -2.0;
 
   if (isWater) {
-    const depthFactor = Math.min(1.0, (waterDensity - 0.65) * 8.0);
-    const lakeBed = -12.0;
-    height = THREE.MathUtils.lerp(baseHeight, lakeBed, depthFactor);
+    const depthFactor = (0.04 - riverVal) / 0.04;
+    const targetRiverBed = -8.0;
+    height = THREE.MathUtils.lerp(baseHeight, Math.min(baseHeight - 6.0, targetRiverBed), depthFactor * 0.95);
   }
 
   return { height, isWater, baseWaterLevel };
+}
+
+export function getBiomeAt(x: number, z: number): "arcane-forest" | "scorched-desolation" | "tundra-spire" | "prairie" {
+  const val = noise2D(x * 0.005, z * 0.005);
+  if (val < 0.2) return "scorched-desolation";
+  if (val > 0.8) return "tundra-spire";
+  if (val > 0.4 && val < 0.6) return "arcane-forest";
+  return "prairie";
 }
 
 export function saveCraterToChunk(c: { x: number; z: number; r: number; d: number }) {
@@ -70,7 +78,7 @@ export function saveCraterToChunk(c: { x: number; z: number; r: number; d: numbe
           try {
             const parsed = JSON.parse(saved);
             cratersList = parsed.craters || [];
-          } catch (e) {}
+          } catch {}
         }
         cratersList.push(c);
         localStorage.setItem(savedKey, JSON.stringify({ craters: cratersList }));
@@ -112,7 +120,7 @@ function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; crat
         try {
           const parsed = JSON.parse(saved);
           chunkCraters = parsed.craters || [];
-        } catch (e) {}
+        } catch {}
       }
     }
 
@@ -139,12 +147,56 @@ function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; crat
       arr[i * 3 + 1] = finalH;
 
       const color = new THREE.Color();
-      if (finalH < baseWaterLevel + 1.2) {
-        color.set("#d2b48c");
-      } else if (finalH > 14.0) {
-        color.set("#808080");
+      const biome = getBiomeAt(worldX, worldZ);
+
+      if (biome === "scorched-desolation") {
+        if (finalH < baseWaterLevel + 1.0) {
+          color.set("#ff4500");
+        } else if (finalH < 4.0) {
+          color.set("#8b0000");
+        } else if (finalH < 12.0) {
+          color.set("#111111");
+        } else if (finalH < 22.0) {
+          color.set("#1a1a1a");
+        } else {
+          color.set("#222222");
+        }
+      } else if (biome === "tundra-spire") {
+        if (finalH < baseWaterLevel + 1.0) {
+          color.set("#a5f2f3");
+        } else if (finalH < 4.0) {
+          color.set("#e0f7fa");
+        } else if (finalH < 12.0) {
+          color.set("#e3f2fd");
+        } else if (finalH < 22.0) {
+          color.set("#b0bec5");
+        } else {
+          color.set("#ffffff");
+        }
+      } else if (biome === "arcane-forest") {
+        if (finalH < baseWaterLevel + 1.0) {
+          color.set("#3f1b5e");
+        } else if (finalH < 4.0) {
+          color.set("#6a0dad");
+        } else if (finalH < 12.0) {
+          color.set("#1d4d2b");
+        } else if (finalH < 22.0) {
+          color.set("#4b0082");
+        } else {
+          color.set("#1c0a35");
+        }
       } else {
-        color.set("#3c6e47");
+        if (finalH < baseWaterLevel + 1.0) {
+          color.set("#d2b48c");
+        } else if (finalH < 4.0) {
+          color.set("#8db600");
+        } else if (finalH < 12.0) {
+          color.set("#3c6e47");
+        } else if (finalH < 22.0) {
+          color.set("#556b2f");
+        } else {
+          color.set("#808080");
+        }
       }
       colors.push(color.r, color.g, color.b);
     }

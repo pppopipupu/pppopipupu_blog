@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DummyType } from "../types";
-import { getTerrainHeight, getModifiedHeight } from "../spells/InfiniteTerrain";
+import { getModifiedHeight } from "../spells/InfiniteTerrain";
 
 export const DummyEntity = React.memo(function DummyEntity({ data, craters = [] }: { data: DummyType; craters?: { x: number; z: number; r: number; d: number }[] }) {
   if (data.consumed) return null;

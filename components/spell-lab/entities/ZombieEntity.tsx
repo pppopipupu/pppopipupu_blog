@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DummyType, ZombieType } from "../types";
-import { getTerrainHeight, getModifiedHeight } from "../spells/InfiniteTerrain";
+import { getModifiedHeight } from "../spells/InfiniteTerrain";
 
 export const ZombieEntity = React.memo(function ZombieEntity({
   data,

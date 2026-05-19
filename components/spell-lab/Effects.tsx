@@ -87,7 +87,7 @@ export function DebrisParticles({ pos, color, onDone }: { pos: THREE.Vector3; co
   return (
     <instancedMesh ref={meshRef} args={[null as any, null as any, particles.length]}>
       <dodecahedronGeometry args={[0.8, 0]} />
-      <meshStandardMaterial color="#4a2d1a" roughness={0.9} transparent />
+      <meshStandardMaterial color={color} roughness={0.9} transparent />
     </instancedMesh>
   );
 }

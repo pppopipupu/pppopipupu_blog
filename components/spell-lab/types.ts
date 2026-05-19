@@ -98,3 +98,34 @@ export interface StructureData {
   parts: StructurePart[];
 }
 
+export type BiomeType = "arcane-forest" | "scorched-desolation" | "tundra-spire" | "prairie";
+
+export type PlantType =
+  | "arcane-tree"
+  | "giant-mushroom"
+  | "ash-pillar"
+  | "basalt-spire"
+  | "frost-spike"
+  | "snowy-pine";
+
+export interface PlantPart {
+  id: string;
+  localOffset: THREE.Vector3;
+  color: string;
+  size: THREE.Vector3;
+  type: "box" | "cylinder" | "cone" | "sphere";
+  rotation?: THREE.Euler;
+  segments?: number;
+}
+
+export interface PlantData {
+  id: number;
+  type: PlantType;
+  pos: THREE.Vector3;
+  rotation: number;
+  scale: number;
+  parts: PlantPart[];
+  hp: number;
+  maxHp: number;
+}
+

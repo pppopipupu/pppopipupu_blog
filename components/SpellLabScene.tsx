@@ -10,7 +10,8 @@ import {
   PrismaticWall, ImpactFlash, DebrisParticles, BloodParticles, DamageText, DummyEntity, ZombieEntity,
   DamageType, DAMAGE_INFO, InfiniteTerrain, FluidSimulation, saveCraterToChunk, getTerrainHeight, CHUNK_SIZE,
   setWaterEnabled,
-  StructureType, StructurePart, StructureData, StructureEntity, generatePartsForStructure
+  StructureType, StructureData, StructureEntity, generatePartsForStructure,
+  PlantType, PlantData, PlantEntity, generatePartsForPlant, getBiomeAt
 } from "./spell-lab/Spells";
 
 
@@ -28,6 +29,7 @@ interface GrassBladeData {
   phase: number;
   destroyed: boolean;
   hidden: boolean;
+  biome: string;
 }
 
 function GrassBlades({ 
@@ -65,6 +67,7 @@ function GrassBlades({
           const x = (cx + rx) * CHUNK_SIZE;
           const z = (cz + rz) * CHUNK_SIZE;
           const hInfo = getTerrainHeight(x, z);
+          const biome = getBiomeAt(x, z);
           
           let destroyed = false;
           for (const c of craters) {
@@ -81,7 +84,8 @@ function GrassBlades({
             scale: 0.15 + rs * 0.1,
             phase: rs * Math.PI * 2,
             destroyed: destroyed,
-            hidden: hInfo.isWater || destroyed
+            hidden: hInfo.isWater || destroyed,
+            biome
           });
         }
       }
@@ -105,19 +109,46 @@ function GrassBlades({
       } else {
         dummy.position.copy(d.pos);
         dummy.rotation.set(0, 0, 0);
-        dummy.scale.set(0.05, d.scale, 0.05);
+        if (d.biome === "scorched-desolation") {
+          dummy.scale.set(d.scale * 0.4, d.scale * 1.5, d.scale * 0.4);
+        } else if (d.biome === "tundra-spire") {
+          dummy.scale.set(d.scale * 0.7, d.scale * 0.8, d.scale * 0.7);
+        } else {
+          dummy.scale.set(0.05, d.scale, 0.05);
+        }
       }
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
+
+      let colorVal = new THREE.Color("#2d8a2d");
+      if (d) {
+        if (d.biome === "scorched-desolation") {
+          const orange = new THREE.Color("#ff5722");
+          const charcoal = new THREE.Color("#212121");
+          colorVal = i % 2 === 0 ? orange : charcoal;
+        } else if (d.biome === "tundra-spire") {
+          const white = new THREE.Color("#e0f7fa");
+          const icy = new THREE.Color("#00e5ff");
+          colorVal = i % 3 === 0 ? white : icy;
+        } else {
+          const green = new THREE.Color("#00e676");
+          const purple = new THREE.Color("#d500f9");
+          colorVal = i % 4 === 0 ? purple : green;
+        }
+      }
+      meshRef.current.setColorAt(i, colorVal);
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
+    if (meshRef.current.instanceColor) {
+      meshRef.current.instanceColor.needsUpdate = true;
+    }
   }, [grassData, count, dummy]);
 
   return (
     <instancedMesh key={`grass-${viewDistance}-${camGridX}-${camGridZ}`} ref={meshRef} args={[undefined, undefined, count]} frustumCulled={true}>
       <coneGeometry args={[1, 4, 3]} />
       <meshStandardMaterial
-        color="#2d8a2d"
+        color="#ffffff"
         flatShading
         onBeforeCompile={(shader) => {
           shader.uniforms.uTime = uniforms.uTime;
@@ -231,6 +262,9 @@ function Skybox({ sunPos }: { sunPos: THREE.Vector3 }) {
   useFrame((state) => {
     uniforms.uSunPos.value.copy(sunPos);
     Reflect.set(uniforms.uTime, "value", state.clock.elapsedTime);
+    if (meshRef.current) {
+      meshRef.current.position.copy(state.camera.position);
+    }
   });
   return (
     <mesh ref={meshRef} scale={[-1, 1, 1]}>
@@ -319,6 +353,7 @@ function SceneContent({
   const [bloods, setBloods] = useState<{ id: number; pos: THREE.Vector3 }[]>([]);
   const [walls, setWalls] = useState<{ start: THREE.Vector3; end: THREE.Vector3; id: number }[]>([]);
   const [structures, setStructures] = useState<StructureData[]>([]);
+  const [plants, setPlants] = useState<PlantData[]>([]);
   
   const [dragStart, setDragStart] = useState<THREE.Vector3 | null>(null);
   const [dragCurrent, setDragCurrent] = useState<THREE.Vector3 | null>(null);
@@ -350,14 +385,14 @@ function SceneContent({
 
   useEffect(() => {
     if (firstPerson) {
-      const targetX = controls ? (controls as any).target.x : 0;
-      const targetZ = controls ? (controls as any).target.z : 0;
+      const targetX = (controls && (controls as any).target) ? (controls as any).target.x : 0;
+      const targetZ = (controls && (controls as any).target) ? (controls as any).target.z : 0;
       const hInfo = getTerrainHeight(targetX, targetZ);
       camera.position.set(targetX, hInfo.height + 1.8, targetZ);
       camera.lookAt(targetX, hInfo.height + 1.8, targetZ - 10);
     } else {
       camera.position.set(camera.position.x, 60, camera.position.z + 50);
-      if (controls) {
+      if (controls && (controls as any).target && (controls as any).update) {
         (controls as any).target.set(camera.position.x, 0, camera.position.z - 50);
         (controls as any).update();
       }
@@ -375,6 +410,7 @@ function SceneContent({
   const sunPos = useMemo(() => new THREE.Vector3(), []);
   const lastTeleportCheck = useRef(0);
   const structureVys = useRef<Record<number, number>>({});
+  const plantVys = useRef<Record<number, number>>({});
 
   const spawnDebris = useCallback((pos: THREE.Vector3, color: string) => {
     const id = Date.now() + Math.random();
@@ -424,7 +460,7 @@ function SceneContent({
       }
 
       if (sunMeshRef.current) {
-        const sunWorldPos = sunPos.clone().normalize().multiplyScalar(450);
+        const sunWorldPos = sunPos.clone().normalize().multiplyScalar(450).add(state.camera.position);
         sunMeshRef.current.position.copy(sunWorldPos);
         sunMeshRef.current.lookAt(state.camera.position);
         sunMeshRef.current.visible = sunPos.y > -10;
@@ -454,6 +490,33 @@ function SceneContent({
         } else {
           s.pos.y = finalH;
           structureVys.current[s.id] = 0;
+        }
+      });
+
+      plants.forEach((p) => {
+        const terrainY = getTerrainHeight(p.pos.x, p.pos.z).height;
+        let finalH = terrainY;
+        for (const c of craters) {
+          const dx = p.pos.x - c.x;
+          const dz = p.pos.z - c.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < c.r) {
+            const depth = c.d * Math.cos((dist / c.r) * Math.PI * 0.5);
+            finalH -= depth;
+          }
+        }
+        if (p.pos.y > finalH + 0.01) {
+          const currentVy = plantVys.current[p.id] ?? 0;
+          const nextVy = currentVy - 9.8 * delta;
+          plantVys.current[p.id] = nextVy;
+          p.pos.y += nextVy * delta;
+          if (p.pos.y <= finalH) {
+            p.pos.y = finalH;
+            plantVys.current[p.id] = 0;
+          }
+        } else {
+          p.pos.y = finalH;
+          plantVys.current[p.id] = 0;
         }
       });
 
@@ -552,6 +615,51 @@ function SceneContent({
           });
           return changed ? next : prev;
         });
+
+        setPlants((prev) => {
+          let changed = false;
+          const next = prev.map((p) => {
+            const dist = p.pos.distanceTo(camera.position);
+            if (dist > maxDist) {
+              changed = true;
+              let x = 0;
+              let z = 0;
+              let biome = "prairie";
+              let attempts = 0;
+              while (biome === "prairie" && attempts < 10) {
+                const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+                const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+                const cx = camGridX + dx;
+                const cz = camGridZ + dz;
+                x = (cx + Math.random()) * CHUNK_SIZE;
+                z = (cz + Math.random()) * CHUNK_SIZE;
+                biome = getBiomeAt(x, z);
+                attempts++;
+              }
+              const hInfo = getTerrainHeight(x, z);
+              let type: PlantType = "arcane-tree";
+              if (biome === "scorched-desolation") {
+                type = Math.random() > 0.5 ? "ash-pillar" : "basalt-spire";
+              } else if (biome === "tundra-spire") {
+                type = Math.random() > 0.5 ? "frost-spike" : "snowy-pine";
+              } else {
+                type = Math.random() > 0.5 ? "arcane-tree" : "giant-mushroom";
+              }
+              return {
+                ...p,
+                type,
+                pos: new THREE.Vector3(x, hInfo.height, z),
+                rotation: Math.random() * Math.PI * 2,
+                scale: 1.2 + Math.random() * 0.8,
+                parts: generatePartsForPlant(type),
+                hp: 100,
+                maxHp: 100
+              };
+            }
+            return p;
+          });
+          return changed ? next : prev;
+        });
       }
     });
 
@@ -616,6 +724,49 @@ function SceneContent({
       });
     }
     setStructures(newStructures);
+  }, [camera, viewDistance]);
+
+  const spawnPlants = useCallback(() => {
+    const newPlants: PlantData[] = [];
+    const camGridX = Math.floor(camera.position.x / CHUNK_SIZE);
+    const camGridZ = Math.floor(camera.position.z / CHUNK_SIZE);
+    const totalPlants = viewDistance <= 2 ? 15 : viewDistance <= 3 ? 30 : 50;
+    for (let i = 0; i < totalPlants; i++) {
+      let x = 0;
+      let z = 0;
+      let biome = "prairie";
+      let attempts = 0;
+      while (biome === "prairie" && attempts < 10) {
+        const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+        const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+        const cx = camGridX + dx;
+        const cz = camGridZ + dz;
+        x = (cx + Math.random()) * CHUNK_SIZE;
+        z = (cz + Math.random()) * CHUNK_SIZE;
+        biome = getBiomeAt(x, z);
+        attempts++;
+      }
+      const hInfo = getTerrainHeight(x, z);
+      let type: PlantType = "arcane-tree";
+      if (biome === "scorched-desolation") {
+        type = Math.random() > 0.5 ? "ash-pillar" : "basalt-spire";
+      } else if (biome === "tundra-spire") {
+        type = Math.random() > 0.5 ? "frost-spike" : "snowy-pine";
+      } else {
+        type = Math.random() > 0.5 ? "arcane-tree" : "giant-mushroom";
+      }
+      newPlants.push({
+        id: i,
+        type,
+        pos: new THREE.Vector3(x, hInfo.height, z),
+        rotation: Math.random() * Math.PI * 2,
+        scale: 1.2 + Math.random() * 0.8,
+        parts: generatePartsForPlant(type),
+        hp: 100,
+        maxHp: 100
+      });
+    }
+    setPlants(newPlants);
   }, [camera, viewDistance]);
 
   const applyDamage = useCallback((hitTest: (d: DummyType) => boolean, minDmg: number, maxDmg: number, damageType: DamageType) => {
@@ -923,7 +1074,8 @@ function SceneContent({
     setZombies([]);
     spawnDummies();
     spawnStructures();
-  }, [spawnDummies, spawnStructures]);
+    spawnPlants();
+  }, [spawnDummies, spawnStructures, spawnPlants]);
 
   useFrame(() => {
     if (firstPerson) {
@@ -974,12 +1126,13 @@ function SceneContent({
     const handle = requestAnimationFrame(() => {
       spawnDummies();
       spawnStructures();
+      spawnPlants();
     });
     return () => {
       Reflect.deleteProperty(window, "__spellLabReset");
       cancelAnimationFrame(handle);
     };
-  }, [resetScene, spawnDummies, spawnStructures]);
+  }, [resetScene, spawnDummies, spawnStructures, spawnPlants]);
 
   return (
     <>
@@ -1042,6 +1195,10 @@ function SceneContent({
 
         {structures.map((s) => (
           <StructureEntity key={`structure-${s.id}`} data={s} craters={craters} spawnDebris={spawnDebris} />
+        ))}
+
+        {plants.map((p) => (
+          <PlantEntity key={`plant-${p.id}`} data={p} craters={craters} spawnDebris={spawnDebris} />
         ))}
 
         {damageTexts.map((dt) => (
