@@ -199,7 +199,9 @@ function KeyboardControls({
   }, []);
 
   useFrame((_, delta) => {
-    const speed = 25 * delta;
+    const baseSpeed = 25;
+    const multiplier = keys.current["shift"] ? 2.5 : 1.0;
+    const speed = baseSpeed * multiplier * delta;
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
     right.y = 0; right.normalize();
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
