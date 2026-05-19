@@ -234,30 +234,65 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
         varying vec3 vNormal;
         varying vec3 vWorldPosition;
 
+        vec2 hash22(vec2 p) {
+          p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+          return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+        }
+
+        float voronoi(vec2 x, float time) {
+          vec2 n = floor(x);
+          vec2 f = fract(x);
+          float m = 8.0;
+          for(int j=-1; j<=1; j++) {
+            for(int i=-1; i<=1; i++) {
+              vec2 g = vec2(float(i), float(j));
+              vec2 o = hash22(n + g);
+              o = 0.5 + 0.5 * sin(time + o * 6.2831);
+              vec2 r = g - f + o;
+              float d = dot(r, r);
+              if(d < m) {
+                m = d;
+              }
+            }
+          }
+          return sqrt(m);
+        }
+
         void main() {
           float depth = vColor.r;
 
-          if (depth <= 0.08) {
+          if (depth <= 0.02) {
             discard;
           }
 
-          float alpha = smoothstep(0.08, 0.4, depth) * 0.75;
+          float alpha = smoothstep(0.0, 0.4, depth) * 0.8;
 
-          vec3 shallowColor = vec3(0.0, 0.95, 1.0);
-          vec3 deepColor = vec3(0.0, 0.12, 0.45);
-          vec3 waterColor = mix(shallowColor, deepColor, smoothstep(0.08, 1.8, depth));
+          vec3 shallowColor = vec3(0.0, 0.85, 0.95);
+          vec3 deepColor = vec3(0.02, 0.08, 0.28);
+          vec3 waterColor = mix(shallowColor, deepColor, smoothstep(0.0, 2.0, depth));
 
-          vec2 flowDir = vec2(0.3, 0.2) * uTime;
-          vec2 posUV = vWorldPosition.xz * 0.25;
-          float wave1 = sin((posUV.x - flowDir.x) * 3.0) * cos((posUV.y - flowDir.y) * 3.0) * 0.5 + 0.5;
-          float wave2 = sin((posUV.y - flowDir.y * 1.5) * 5.0) * cos((posUV.x - flowDir.x * 0.7) * 5.0) * 0.5 + 0.5;
-          float caustics = pow(mix(wave1, wave2, 0.5), 4.0) * 0.22;
+          vec2 uv = vWorldPosition.xz * 0.4;
+          float v1 = voronoi(uv + vec2(uTime * 0.1, uTime * 0.05), uTime * 1.5);
+          float v2 = voronoi(uv * 1.8 - vec2(uTime * 0.05, -uTime * 0.08), uTime * 2.0 + 3.14);
+          float c1 = 1.0 - v1;
+          float c2 = 1.0 - v2;
+          float caustics = pow(mix(c1, c2, 0.5), 3.0) * 0.35;
 
-          float foamStrength = smoothstep(0.18, 0.08, depth);
-          float foamNoise = sin(uTime * 4.5 + vWorldPosition.x * 8.0) * cos(uTime * 3.5 + vWorldPosition.z * 8.0) * 0.5 + 0.5;
-          vec3 foamColor = vec3(1.0, 1.0, 1.0) * foamStrength * foamNoise * 0.35;
+          float foamStrength = smoothstep(0.18, 0.02, depth);
+          float n1 = sin(vWorldPosition.x * 6.0 + uTime * 2.0) * cos(vWorldPosition.z * 4.0 - uTime * 1.5);
+          float n2 = sin((vWorldPosition.x - vWorldPosition.z) * 5.0 - uTime * 2.5) * 0.5 + 0.5;
+          float foamNoise = mix(n1 * 0.5 + 0.5, n2, 0.5);
+          vec3 foamColor = vec3(1.0, 1.0, 1.0) * foamStrength * foamNoise * 0.4;
 
-          vec3 finalColor = waterColor + vec3(caustics) + foamColor;
+          vec3 viewDir = normalize(vViewPosition);
+          vec3 normalDir = normalize(vNormal);
+          float fresnel = pow(1.0 - max(0.0, dot(viewDir, normalDir)), 3.0);
+
+          vec3 lightDir = normalize(vec3(-0.5, 0.8, 0.3));
+          vec3 halfDir = normalize(viewDir + lightDir);
+          float spec = pow(max(0.0, dot(normalDir, halfDir)), 64.0) * 0.6;
+
+          vec3 finalColor = waterColor + vec3(caustics) * 0.6 + foamColor * 0.4 + vec3(spec + fresnel * 0.15);
 
           gl_FragColor = vec4(finalColor, alpha);
         }
