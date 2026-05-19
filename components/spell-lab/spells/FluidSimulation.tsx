@@ -20,6 +20,7 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
   const flowR = useRef(new Float32Array(SIZE * SIZE));
   const flowU = useRef(new Float32Array(SIZE * SIZE));
   const flowD = useRef(new Float32Array(SIZE * SIZE));
+  const nextWGrid = useRef(new Float32Array(SIZE * SIZE));
 
   const cx = Math.floor(cameraPos.x / CHUNK_SIZE);
   const cz = Math.floor(cameraPos.z / CHUNK_SIZE);
@@ -285,7 +286,10 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
           vec3 foamColor = vec3(1.0, 1.0, 1.0) * foamStrength * foamNoise * 0.4;
 
           vec3 viewDir = normalize(vViewPosition);
-          vec3 normalDir = normalize(vNormal);
+          vec3 normalDir = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
+          if (normalDir.y < 0.0) {
+            normalDir = -normalDir;
+          }
           float fresnel = pow(1.0 - max(0.0, dot(viewDir, normalDir)), 3.0);
 
           vec3 lightDir = normalize(vec3(-0.5, 0.8, 0.3));
@@ -306,12 +310,15 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
     const t = tGrid.current;
     const w = wGrid.current;
 
-    for (let z = 0; z < SIZE; z++) {
-      for (let x = 0; x < SIZE; x++) {
-        const idx = x + z * SIZE;
-        const wx = centerWorldX - range / 2 + x * cellSize;
-        const wz = centerWorldZ - range / 2 + z * cellSize;
-        t[idx] = getModifiedHeight(wx, wz, craters);
+    if (craters.length !== prevCratersLength.current) {
+      prevCratersLength.current = craters.length;
+      for (let z = 0; z < SIZE; z++) {
+        for (let x = 0; x < SIZE; x++) {
+          const idx = x + z * SIZE;
+          const wx = centerWorldX - range / 2 + x * cellSize;
+          const wz = centerWorldZ - range / 2 + z * cellSize;
+          t[idx] = getModifiedHeight(wx, wz, craters);
+        }
       }
     }
 
@@ -320,15 +327,16 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
     const fU = flowU.current;
     const fD = flowD.current;
 
-    const nextW = new Float32Array(SIZE * SIZE);
+    const nextW = nextWGrid.current;
     nextW.set(w);
 
-    const flowSpeed = 0.55;
+    const flowSpeed = 0.45;
+    const damping = 0.88;
 
     for (let z = 1; z < SIZE - 1; z++) {
       for (let x = 1; x < SIZE - 1; x++) {
         const idx = x + z * SIZE;
-        if (w[idx] <= 0) continue;
+        if (w[idx] < 0.05) continue;
 
         const hSelf = t[idx] + w[idx];
         const idxL = idx - 1;
@@ -341,10 +349,10 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
         const hU = t[idxU] + w[idxU];
         const hD = t[idxD] + w[idxD];
 
-        fL[idx] = Math.max(0, fL[idx] + (hSelf - hL) * flowSpeed);
-        fR[idx] = Math.max(0, fR[idx] + (hSelf - hR) * flowSpeed);
-        fU[idx] = Math.max(0, fU[idx] + (hSelf - hU) * flowSpeed);
-        fD[idx] = Math.max(0, fD[idx] + (hSelf - hD) * flowSpeed);
+        fL[idx] = Math.max(0, fL[idx] * damping + (hSelf - hL) * flowSpeed);
+        fR[idx] = Math.max(0, fR[idx] * damping + (hSelf - hR) * flowSpeed);
+        fU[idx] = Math.max(0, fU[idx] * damping + (hSelf - hU) * flowSpeed);
+        fD[idx] = Math.max(0, fD[idx] * damping + (hSelf - hD) * flowSpeed);
 
         let sumFlow = fL[idx] + fR[idx] + fU[idx] + fD[idx];
         if (sumFlow > 0) {
@@ -367,6 +375,16 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
         const outFlow = (fL[idx] + fR[idx] + fU[idx] + fD[idx]) * dt;
         const inFlow = (fR[idx - 1] + fL[idx + 1] + fD[idx - SIZE] + fU[idx + SIZE]) * dt;
         nextW[idx] = Math.max(0, w[idx] + inFlow - outFlow);
+
+        const wx = centerWorldX - range / 2 + x * cellSize;
+        const wz = centerWorldZ - range / 2 + z * cellSize;
+        const hInfo = getTerrainHeight(wx, wz);
+        if (hInfo.isWater) {
+          const naturalDepth = Math.max(0, hInfo.baseWaterLevel - t[idx]);
+          if (nextW[idx] < naturalDepth) {
+            nextW[idx] = naturalDepth;
+          }
+        }
       }
     }
 
@@ -400,7 +418,6 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
       }
       pos.needsUpdate = true;
       colAttr.needsUpdate = true;
-      g.computeVertexNormals();
     }
 
     mat.uniforms.uTime.value = state.clock.elapsedTime;
