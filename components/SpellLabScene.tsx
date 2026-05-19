@@ -415,6 +415,7 @@ function SceneContent({
   const moonLightRef = useRef<THREE.DirectionalLight>(null);
   const fogRef = useRef<THREE.Fog>(null);
   const sunPos = useMemo(() => new THREE.Vector3(), []);
+  const viewCenter = useMemo(() => new THREE.Vector3(), []);
   const lastTeleportCheck = useRef(0);
   const structureVys = useRef<Record<number, number>>({});
   const plantVys = useRef<Record<number, number>>({});
@@ -425,6 +426,16 @@ function SceneContent({
   }, []);
 
   useFrame((state, delta) => {
+    if (firstPerson) {
+      viewCenter.copy(state.camera.position);
+    } else {
+      if (controls && (controls as any).target) {
+        viewCenter.copy((controls as any).target);
+      } else {
+        viewCenter.set(state.camera.position.x, 0, state.camera.position.z - 50);
+      }
+    }
+
     const angle = (state.clock.elapsedTime * 0.1) % (Math.PI * 2);
     const radius = 120;
     const sy = Math.sin(angle) * radius;
@@ -1157,9 +1168,9 @@ function SceneContent({
       <Skybox sunPos={sunPos} />
 
       <SceneShake intensityRef={shakeIntensity}>
-        <InfiniteTerrain cameraPos={camera.position} cratersVersion={cratersVersion} viewDistance={viewDistance} />
-        {waterEnabled && <FluidSimulation craters={craters} cameraPos={camera.position} viewDistance={viewDistance} />}
-        <GrassBlades craters={craters} cameraPos={camera.position} viewDistance={viewDistance} />
+        <InfiniteTerrain cameraPos={viewCenter} cratersVersion={cratersVersion} viewDistance={viewDistance} />
+        {waterEnabled && <FluidSimulation craters={craters} cameraPos={viewCenter} viewDistance={viewDistance} />}
+        <GrassBlades craters={craters} cameraPos={viewCenter} viewDistance={viewDistance} />
 
         <mesh 
           rotation={[-Math.PI / 2, 0, 0]} 
