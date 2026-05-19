@@ -4,12 +4,15 @@ import React, { useRef, useState, useCallback, useEffect, useMemo } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, PointerLockControls } from "@react-three/drei";
 import { 
   DummyType, ZombieType, Fireball, LightningStrike, DisintegrateRay, 
   PrismaticWall, ImpactFlash, DebrisParticles, BloodParticles, DamageText, DummyEntity, ZombieEntity,
-  DamageType, DAMAGE_INFO, InfiniteTerrain, FluidSimulation, saveCraterToChunk, getTerrainHeight, CHUNK_SIZE
+  DamageType, DAMAGE_INFO, InfiniteTerrain, FluidSimulation, saveCraterToChunk, getTerrainHeight, CHUNK_SIZE,
+  setWaterEnabled,
+  StructureType, StructurePart, StructureData, StructureEntity, generatePartsForStructure
 } from "./spell-lab/Spells";
+
 
 
 
@@ -137,8 +140,13 @@ function GrassBlades({
   );
 }
 
-/* ==================== Camera Shake ==================== */
-function KeyboardControls({ controlsRef }: { controlsRef: React.RefObject<import("three-stdlib").OrbitControls | null> }) {
+function KeyboardControls({ 
+  controlsRef,
+  firstPerson
+}: { 
+  controlsRef: React.RefObject<import("three-stdlib").OrbitControls | null>;
+  firstPerson: boolean;
+}) {
   const { camera } = useThree();
   const keys = useRef<{ [key: string]: boolean }>({});
   
@@ -172,9 +180,19 @@ function KeyboardControls({ controlsRef }: { controlsRef: React.RefObject<import
     if (keys.current["a"]) move.addScaledVector(right, -speed);
     if (keys.current["d"]) move.addScaledVector(right, speed);
     
-    if (move.lengthSq() > 0 && controlsRef.current) {
+    if (move.lengthSq() > 0) {
       camera.position.add(move);
-      controlsRef.current.target.add(move);
+      if (firstPerson) {
+        const hInfo = getTerrainHeight(camera.position.x, camera.position.z);
+        const targetY = hInfo.height + 1.8;
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.2);
+      } else if (controlsRef.current) {
+        controlsRef.current.target.add(move);
+      }
+    } else if (firstPerson) {
+      const hInfo = getTerrainHeight(camera.position.x, camera.position.z);
+      const targetY = hInfo.height + 1.8;
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.2);
     }
   });
   return null;
@@ -248,8 +266,8 @@ function Skybox({ sunPos }: { sunPos: THREE.Vector3 }) {
             } else {
               skyColor = nightSky;
             }
-            float sunGlow = pow(max(0.0, dot(dir, sunDir)), 120.0);
-            skyColor += vec3(1.0, 0.9, 0.7) * sunGlow * step(0.0, sunHeight);
+            float sunGlow = pow(max(0.0, dot(dir, sunDir)), 15.0);
+            skyColor += vec3(1.0, 0.8, 0.5) * sunGlow * 0.5 * step(0.0, sunHeight);
             float moonGlow = pow(max(0.0, dot(dir, -sunDir)), 150.0);
             skyColor += vec3(0.7, 0.8, 1.0) * moonGlow * step(0.0, -sunHeight);
             gl_FragColor = vec4(skyColor, 1.0);
@@ -271,13 +289,21 @@ function SceneContent({
   shakeIntensity,
   viewDistance = 3,
   fogEnabled = true,
+  waterEnabled = false,
   onCastSpellAction,
+  firstPerson = false,
+  playerHp = 100,
+  onPlayerHpChange,
 }: {
   spell: string;
   shakeIntensity: React.RefObject<number>;
   viewDistance?: number;
   fogEnabled?: boolean;
+  waterEnabled?: boolean;
   onCastSpellAction?: () => void;
+  firstPerson?: boolean;
+  playerHp?: number;
+  onPlayerHpChange?: (hp: number) => void;
 }) {
   const [craters, setCraters] = useState<{ x: number; z: number; r: number; d: number }[]>([]);
   const [cratersVersion, setCratersVersion] = useState(0);
@@ -292,11 +318,55 @@ function SceneContent({
   const [damageTexts, setDamageTexts] = useState<{ id: number; pos: THREE.Vector3; text: string; color: string }[]>([]);
   const [bloods, setBloods] = useState<{ id: number; pos: THREE.Vector3 }[]>([]);
   const [walls, setWalls] = useState<{ start: THREE.Vector3; end: THREE.Vector3; id: number }[]>([]);
+  const [structures, setStructures] = useState<StructureData[]>([]);
   
   const [dragStart, setDragStart] = useState<THREE.Vector3 | null>(null);
   const [dragCurrent, setDragCurrent] = useState<THREE.Vector3 | null>(null);
 
   const { camera, controls } = useThree();
+
+  const playerDummy: DummyType = useMemo(() => ({
+    id: 99999,
+    pos: new THREE.Vector3(),
+    target: new THREE.Vector3(),
+    hp: playerHp,
+    maxHp: 100,
+    color: "#00ffff"
+  }), [playerHp]);
+
+  const zombieTargets = useMemo(() => {
+    if (firstPerson && playerHp > 0) {
+      return [playerDummy, ...dummies];
+    }
+    return dummies;
+  }, [firstPerson, playerHp, playerDummy, dummies]);
+
+  const sunMeshRef = useRef<THREE.Mesh>(null);
+  const sunTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    return loader.load("/face_angry.png");
+  }, []);
+
+  useEffect(() => {
+    if (firstPerson) {
+      const targetX = controls ? (controls as any).target.x : 0;
+      const targetZ = controls ? (controls as any).target.z : 0;
+      const hInfo = getTerrainHeight(targetX, targetZ);
+      camera.position.set(targetX, hInfo.height + 1.8, targetZ);
+      camera.lookAt(targetX, hInfo.height + 1.8, targetZ - 10);
+    } else {
+      camera.position.set(camera.position.x, 60, camera.position.z + 50);
+      if (controls) {
+        (controls as any).target.set(camera.position.x, 0, camera.position.z - 50);
+        (controls as any).update();
+      }
+    }
+  }, [firstPerson, camera, controls]);
+
+  useEffect(() => {
+    setWaterEnabled(!!waterEnabled);
+  }, [waterEnabled]);
 
   const ambientLightRef = useRef<THREE.AmbientLight>(null);
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
@@ -304,8 +374,14 @@ function SceneContent({
   const fogRef = useRef<THREE.Fog>(null);
   const sunPos = useMemo(() => new THREE.Vector3(), []);
   const lastTeleportCheck = useRef(0);
+  const structureVys = useRef<Record<number, number>>({});
 
-  useFrame((state) => {
+  const spawnDebris = useCallback((pos: THREE.Vector3, color: string) => {
+    const id = Date.now() + Math.random();
+    setDebris((prev) => [...prev, { pos: pos.clone(), color, id }]);
+  }, []);
+
+  useFrame((state, delta) => {
     const angle = (state.clock.elapsedTime * 0.1) % (Math.PI * 2);
     const radius = 120;
     const sy = Math.sin(angle) * radius;
@@ -346,6 +422,40 @@ function SceneContent({
         fogRef.current.color.copy(currentFogColor);
         state.gl.setClearColor(currentFogColor);
       }
+
+      if (sunMeshRef.current) {
+        const sunWorldPos = sunPos.clone().normalize().multiplyScalar(450);
+        sunMeshRef.current.position.copy(sunWorldPos);
+        sunMeshRef.current.lookAt(state.camera.position);
+        sunMeshRef.current.visible = sunPos.y > -10;
+      }
+
+      structures.forEach((s) => {
+        const terrainY = getTerrainHeight(s.pos.x, s.pos.z).height;
+        let finalH = terrainY;
+        for (const c of craters) {
+          const dx = s.pos.x - c.x;
+          const dz = s.pos.z - c.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < c.r) {
+            const depth = c.d * Math.cos((dist / c.r) * Math.PI * 0.5);
+            finalH -= depth;
+          }
+        }
+        if (s.pos.y > finalH + 0.01) {
+          const currentVy = structureVys.current[s.id] ?? 0;
+          const nextVy = currentVy - 9.8 * delta;
+          structureVys.current[s.id] = nextVy;
+          s.pos.y += nextVy * delta;
+          if (s.pos.y <= finalH) {
+            s.pos.y = finalH;
+            structureVys.current[s.id] = 0;
+          }
+        } else {
+          s.pos.y = finalH;
+          structureVys.current[s.id] = 0;
+        }
+      });
 
       if (state.clock.elapsedTime - lastTeleportCheck.current > 1.5) {
         lastTeleportCheck.current = state.clock.elapsedTime;
@@ -402,6 +512,46 @@ function SceneContent({
           });
           return changed ? next : prev;
         });
+
+        setStructures((prev) => {
+          let changed = false;
+          const next = prev.map((s) => {
+            const dist = s.pos.distanceTo(camera.position);
+            if (dist > maxDist) {
+              changed = true;
+              const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+              const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+              const cx = camGridX + dx;
+              const cz = camGridZ + dz;
+              const x = (cx + Math.random()) * CHUNK_SIZE;
+              const z = (cz + Math.random()) * CHUNK_SIZE;
+              const hInfo = getTerrainHeight(x, z);
+              const types: StructureType[] = [
+                "cabin",
+                "windmill",
+                "mine",
+                "tower",
+                "well",
+                "obelisk",
+                "shrine",
+                "ruins",
+                "campfire",
+                "box-pile"
+              ];
+              const type = types[Math.floor(Math.random() * types.length)];
+              return {
+                ...s,
+                type,
+                pos: new THREE.Vector3(x, hInfo.height, z),
+                rotation: Math.random() * Math.PI * 2,
+                scale: 1.4 + Math.random() * 0.8,
+                parts: generatePartsForStructure(type)
+              };
+            }
+            return s;
+          });
+          return changed ? next : prev;
+        });
       }
     });
 
@@ -409,7 +559,7 @@ function SceneContent({
     const newDummies: DummyType[] = [];
     const camGridX = Math.floor(camera.position.x / CHUNK_SIZE);
     const camGridZ = Math.floor(camera.position.z / CHUNK_SIZE);
-    const totalDummies = viewDistance <= 2 ? 80 : viewDistance <= 3 ? 150 : 250;
+    const totalDummies = viewDistance <= 2 ? 50 : viewDistance <= 3 ? 100 : 180;
     for(let i = 0; i < totalDummies; i++) {
       const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
       const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
@@ -428,6 +578,44 @@ function SceneContent({
       });
     }
     setDummies(newDummies);
+  }, [camera, viewDistance]);
+
+  const spawnStructures = useCallback(() => {
+    const newStructures: StructureData[] = [];
+    const camGridX = Math.floor(camera.position.x / CHUNK_SIZE);
+    const camGridZ = Math.floor(camera.position.z / CHUNK_SIZE);
+    const totalStructures = viewDistance <= 2 ? 10 : viewDistance <= 3 ? 20 : 35;
+    const types: StructureType[] = [
+      "cabin",
+      "windmill",
+      "mine",
+      "tower",
+      "well",
+      "obelisk",
+      "shrine",
+      "ruins",
+      "campfire",
+      "box-pile"
+    ];
+    for (let i = 0; i < totalStructures; i++) {
+      const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+      const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
+      const cx = camGridX + dx;
+      const cz = camGridZ + dz;
+      const x = (cx + Math.random()) * CHUNK_SIZE;
+      const z = (cz + Math.random()) * CHUNK_SIZE;
+      const hInfo = getTerrainHeight(x, z);
+      const type = types[Math.floor(Math.random() * types.length)];
+      newStructures.push({
+        id: i,
+        type,
+        pos: new THREE.Vector3(x, hInfo.height, z),
+        rotation: Math.random() * Math.PI * 2,
+        scale: 1.4 + Math.random() * 0.8,
+        parts: generatePartsForStructure(type)
+      });
+    }
+    setStructures(newStructures);
   }, [camera, viewDistance]);
 
   const applyDamage = useCallback((hitTest: (d: DummyType) => boolean, minDmg: number, maxDmg: number, damageType: DamageType) => {
@@ -663,6 +851,31 @@ function SceneContent({
   }, [spell, dragStart, controls, recordSpellCast]);
 
   const handleZombieAttack = useCallback((dummyId: number, damage: number) => {
+    if (dummyId === 99999) {
+      if (playerHp > 0 && onPlayerHpChange) {
+        onPlayerHpChange(Math.max(0, playerHp - damage));
+        const info = DAMAGE_INFO["bludgeoning"];
+        setTimeout(() => {
+          setDamageTexts((texts) => [
+            ...texts,
+            {
+              id: Math.random(),
+              pos: camera.position.clone().add(new THREE.Vector3(0, -0.5, -1).applyQuaternion(camera.quaternion)),
+              text: `-${damage} HP`,
+              color: info.color
+            }
+          ]);
+          setBloods((b) => [
+            ...b,
+            {
+              id: Math.random(),
+              pos: camera.position.clone().add(new THREE.Vector3(0, -0.8, -1.2).applyQuaternion(camera.quaternion))
+            }
+          ]);
+        }, 0);
+      }
+      return;
+    }
     setDummies((prev) =>
       prev.map((d) => {
         if (d.id === dummyId && d.hp > 0) {
@@ -695,7 +908,7 @@ function SceneContent({
         return d;
       })
     );
-  }, []);
+  }, [playerHp, onPlayerHpChange, camera]);
 
   const resetScene = useCallback(() => {
     setCraters([]);
@@ -709,18 +922,64 @@ function SceneContent({
     setBloods([]);
     setZombies([]);
     spawnDummies();
-  }, [spawnDummies]);
+    spawnStructures();
+  }, [spawnDummies, spawnStructures]);
+
+  useFrame(() => {
+    if (firstPerson) {
+      playerDummy.pos.copy(camera.position);
+      playerDummy.pos.y -= 1.8;
+      playerDummy.target.copy(playerDummy.pos);
+    }
+  });
+
+  useEffect(() => {
+    if (!firstPerson || playerHp <= 0) return;
+    const handleClick = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest(".glass-overlay") || (e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("input")) {
+        return;
+      }
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const targetPoint = new THREE.Vector3();
+      
+      let castPoint: THREE.Vector3 | null = null;
+      if (raycaster.ray.intersectPlane(plane, targetPoint)) {
+        const dir = targetPoint.clone().sub(camera.position);
+        const lookDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+        const dot = dir.dot(lookDir);
+        if (dot > 0 && dir.length() < 120) {
+          castPoint = targetPoint;
+        }
+      }
+      
+      if (!castPoint) {
+        const lookDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+        castPoint = camera.position.clone().addScaledVector(lookDir, 40);
+      }
+      
+      const terrainY = getTerrainHeight(castPoint.x, castPoint.z).height;
+      castPoint.y = terrainY;
+      castInstantSpell(castPoint);
+    };
+    window.addEventListener("click", handleClick);
+    return () => {
+      window.removeEventListener("click", handleClick);
+    };
+  }, [firstPerson, camera, castInstantSpell, playerHp]);
 
   useEffect(() => {
     Reflect.set(window, "__spellLabReset", resetScene);
     const handle = requestAnimationFrame(() => {
       spawnDummies();
+      spawnStructures();
     });
     return () => {
       Reflect.deleteProperty(window, "__spellLabReset");
       cancelAnimationFrame(handle);
     };
-  }, [resetScene, spawnDummies]);
+  }, [resetScene, spawnDummies, spawnStructures]);
 
   return (
     <>
@@ -732,7 +991,7 @@ function SceneContent({
 
       <SceneShake intensityRef={shakeIntensity}>
         <InfiniteTerrain cameraPos={camera.position} cratersVersion={cratersVersion} viewDistance={viewDistance} />
-        <FluidSimulation craters={craters} cameraPos={camera.position} viewDistance={viewDistance} />
+        {waterEnabled && <FluidSimulation craters={craters} cameraPos={camera.position} viewDistance={viewDistance} />}
         <GrassBlades craters={craters} cameraPos={camera.position} viewDistance={viewDistance} />
 
         <mesh 
@@ -757,12 +1016,32 @@ function SceneContent({
           </mesh>
         )}
 
+        {sunTexture && (
+          <mesh ref={sunMeshRef}>
+            <planeGeometry args={[80, 80]} />
+            <meshBasicMaterial 
+              map={sunTexture} 
+              transparent 
+              color={new THREE.Color(2.0, 1.6, 0.4)} 
+              depthWrite={false} 
+              toneMapped={false} 
+            />
+          </mesh>
+        )}
+
+        {firstPerson && playerHp > 0 && (
+          <DummyEntity key="dummy-player" data={playerDummy} craters={craters} />
+        )}
         {dummies.map((d) => (
           <DummyEntity key={`dummy-${d.id}`} data={d} craters={craters} />
         ))}
 
         {zombies.map((z) => (
-          <ZombieEntity key={`zombie-${z.id}`} data={z} dummies={dummies} onAttack={handleZombieAttack} craters={craters} />
+          <ZombieEntity key={`zombie-${z.id}`} data={z} dummies={zombieTargets} onAttack={handleZombieAttack} craters={craters} />
+        ))}
+
+        {structures.map((s) => (
+          <StructureEntity key={`structure-${s.id}`} data={s} craters={craters} spawnDebris={spawnDebris} />
         ))}
 
         {damageTexts.map((dt) => (
@@ -817,13 +1096,21 @@ export default function SpellLabScene({
   spell,
   viewDistance = 3,
   fogEnabled = true,
+  waterEnabled = false,
   onCastSpellAction,
+  firstPerson = false,
+  playerHp = 100,
+  onPlayerHpChange,
 }: {
   spell: SpellType;
   onResetAction?: () => void;
   viewDistance?: number;
   fogEnabled?: boolean;
+  waterEnabled?: boolean;
   onCastSpellAction?: () => void;
+  firstPerson?: boolean;
+  playerHp?: number;
+  onPlayerHpChange?: (hp: number) => void;
 }) {
   const shakeIntensity = useRef(0);
   const controlsRef = useRef<import("three-stdlib").OrbitControls | null>(null);
@@ -836,21 +1123,35 @@ export default function SpellLabScene({
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
     >
       <React.Suspense fallback={null}>
-        <SceneContent spell={spell} shakeIntensity={shakeIntensity} viewDistance={viewDistance} fogEnabled={fogEnabled} onCastSpellAction={onCastSpellAction} />
-        <KeyboardControls controlsRef={controlsRef} />
+        <SceneContent 
+          spell={spell} 
+          shakeIntensity={shakeIntensity} 
+          viewDistance={viewDistance} 
+          fogEnabled={fogEnabled} 
+          waterEnabled={waterEnabled} 
+          onCastSpellAction={onCastSpellAction}
+          firstPerson={firstPerson}
+          playerHp={playerHp}
+          onPlayerHpChange={onPlayerHpChange}
+        />
+        <KeyboardControls controlsRef={controlsRef} firstPerson={firstPerson} />
       </React.Suspense>
-      <OrbitControls 
-        ref={controlsRef}
-        makeDefault
-        mouseButtons={{
-          LEFT: -1 as THREE.MOUSE,
-          MIDDLE: THREE.MOUSE.ROTATE,
-          RIGHT: THREE.MOUSE.PAN
-        }}
-        enablePan={true}
-        enableZoom={true}
-        maxPolarAngle={Math.PI / 2 - 0.05}
-      />
+      {firstPerson ? (
+        <PointerLockControls makeDefault />
+      ) : (
+        <OrbitControls 
+          ref={controlsRef}
+          makeDefault
+          mouseButtons={{
+            LEFT: -1 as THREE.MOUSE,
+            MIDDLE: THREE.MOUSE.ROTATE,
+            RIGHT: THREE.MOUSE.PAN
+          }}
+          enablePan={true}
+          enableZoom={true}
+          maxPolarAngle={Math.PI / 2 - 0.05}
+        />
+      )}
     </Canvas>
   );
 }

@@ -21,6 +21,16 @@ function noise2D(x: number, z: number) {
   return a * (1 - ux) * (1 - uz) + b * ux * (1 - uz) + c * (1 - ux) * uz + d * ux * uz;
 }
 
+let waterEnabled = false;
+
+export function setWaterEnabled(val: boolean) {
+  waterEnabled = val;
+}
+
+export function getWaterEnabled(): boolean {
+  return waterEnabled;
+}
+
 export function getTerrainHeight(x: number, z: number): { height: number; isWater: boolean; baseWaterLevel: number } {
   const h1 = noise2D(x * 0.005, z * 0.005) * 35;
   const h2 = noise2D(x * 0.02, z * 0.02) * 12;
@@ -32,7 +42,7 @@ export function getTerrainHeight(x: number, z: number): { height: number; isWate
   const waterDensity = w1 + w2;
 
   let height = baseHeight;
-  const isWater = waterDensity > 0.65;
+  const isWater = waterEnabled && waterDensity > 0.65;
   const baseWaterLevel = -2.0;
 
   if (isWater) {

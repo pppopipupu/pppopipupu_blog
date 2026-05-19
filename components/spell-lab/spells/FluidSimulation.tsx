@@ -1,12 +1,15 @@
 import React, { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getTerrainHeight, getModifiedHeight } from "./InfiniteTerrain";
+import { getTerrainHeight, getModifiedHeight, getWaterEnabled } from "./InfiniteTerrain";
 
 const SIZE = 64;
 const CHUNK_SIZE = 16;
 
 export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { craters: { x: number; z: number; r: number; d: number }[]; cameraPos: THREE.Vector3; viewDistance?: number }) {
+  const isWaterEnabled = getWaterEnabled();
+  if (!isWaterEnabled) return null;
+
   const meshRef = useRef<THREE.Mesh>(null);
   const initialized = useRef(false);
 

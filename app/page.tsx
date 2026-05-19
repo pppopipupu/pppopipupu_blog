@@ -38,11 +38,11 @@ function RotatingGradientText() {
             bevelSegments={5}
           >
             pppopipupu
-            <meshStandardMaterial 
+            <meshStandardMaterial
               ref={materialRef}
-              color="#ffffff" 
-              roughness={0.2} 
-              metalness={0.8} 
+              color="#ffffff"
+              roughness={0.2}
+              metalness={0.8}
               emissive="#ffd700"
               emissiveIntensity={1}
               toneMapped={false}
@@ -262,7 +262,7 @@ export default function Home() {
               textShadow: "3px 3px 0px #ff0000, -2px -2px 0px #00ffff, 0 0 20px #ff00ff",
               letterSpacing: "0.15em",
             }}>
-              法术试验场
+              安格瑞法术实验室
             </span>
           </div>
         </Link>
@@ -332,18 +332,18 @@ export default function Home() {
       </table>
 
 
-      <div style={{ 
-        width: "80%", 
-        maxWidth: "800px", 
-        border: "5px outset #00ffff", 
-        backgroundColor: "#000080", 
-        padding: "20px", 
+      <div style={{
+        width: "80%",
+        maxWidth: "800px",
+        border: "5px outset #00ffff",
+        backgroundColor: "#000080",
+        padding: "20px",
         marginBottom: "50px",
         boxShadow: "10px 10px 0px #ff00ff"
       }}>
-        <h2 className="rainbow-text blink-text" style={{ 
-          fontSize: "2.5rem", 
-          textAlign: "center", 
+        <h2 className="rainbow-text blink-text" style={{
+          fontSize: "2.5rem",
+          textAlign: "center",
           margin: "0 0 20px 0",
           textTransform: "uppercase"
         }}>

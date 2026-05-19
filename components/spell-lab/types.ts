@@ -65,3 +65,36 @@ export interface CraterType {
 }
 
 export const CHUNK_SIZE = 40;
+
+export type StructureType =
+  | "cabin"
+  | "windmill"
+  | "mine"
+  | "tower"
+  | "well"
+  | "obelisk"
+  | "shrine"
+  | "ruins"
+  | "campfire"
+  | "box-pile";
+
+export interface StructurePart {
+  id: string;
+  localOffset: THREE.Vector3;
+  color: string;
+  size: THREE.Vector3;
+  type: "box" | "cylinder" | "cone" | "sphere";
+  rotation?: THREE.Euler;
+  segments?: number;
+  segmentsHeight?: number;
+}
+
+export interface StructureData {
+  id: number;
+  type: StructureType;
+  pos: THREE.Vector3;
+  rotation: number;
+  scale: number;
+  parts: StructurePart[];
+}
+

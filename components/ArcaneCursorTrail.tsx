@@ -251,6 +251,20 @@ function ArcaneTrail() {
 }
 
 export default function ArcaneCursorTrail() {
+  const [isLocked, setIsLocked] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleLockChange = () => {
+      setIsLocked(!!document.pointerLockElement);
+    };
+    document.addEventListener("pointerlockchange", handleLockChange);
+    return () => {
+      document.removeEventListener("pointerlockchange", handleLockChange);
+    };
+  }, []);
+
+  if (isLocked) return null;
+
   return (
     <div
       style={{

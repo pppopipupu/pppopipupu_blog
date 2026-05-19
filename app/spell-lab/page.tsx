@@ -20,9 +20,28 @@ export default function SpellLab() {
   const [selectedSpell, setSelectedSpell] = useState<SpellType>("fireball");
   const [viewDistance, setViewDistance] = useState<number>(3);
   const [fogEnabled, setFogEnabled] = useState<boolean>(true);
+  const [waterEnabled, setWaterEnabled] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [dbCastCount, setDbCastCount] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [firstPerson, setFirstPerson] = useState<boolean>(false);
+  const [playerHp, setPlayerHp] = useState<number>(100);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "q") {
+        setFirstPerson((prev) => {
+          const next = !prev;
+          if (next) {
+            setPlayerHp(100);
+          }
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -87,6 +106,7 @@ export default function SpellLab() {
   useEffect(() => {
     const savedDist = localStorage.getItem("spell-lab-view-distance");
     const savedFog = localStorage.getItem("spell-lab-fog-enabled");
+    const savedWater = localStorage.getItem("spell-lab-water-enabled");
     requestAnimationFrame(() => {
       if (savedDist !== null) {
         const num = parseInt(savedDist, 10);
@@ -96,6 +116,9 @@ export default function SpellLab() {
       }
       if (savedFog !== null) {
         setFogEnabled(savedFog === "true");
+      }
+      if (savedWater !== null) {
+        setWaterEnabled(savedWater === "true");
       }
     });
   }, []);
@@ -107,6 +130,10 @@ export default function SpellLab() {
   useEffect(() => {
     localStorage.setItem("spell-lab-fog-enabled", fogEnabled.toString());
   }, [fogEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem("spell-lab-water-enabled", waterEnabled.toString());
+  }, [waterEnabled]);
 
   const handleReset = () => {
     if (typeof window !== "undefined" && Reflect.has(window, "__spellLabReset")) {
@@ -244,9 +271,26 @@ export default function SpellLab() {
         </span>
 
         <button
-          onClick={() => setFogEnabled(!fogEnabled)}
+          onClick={() => setWaterEnabled(!waterEnabled)}
           style={{
             marginLeft: "auto",
+            padding: "4px 12px",
+            border: waterEnabled ? "3px inset #00ffff" : "3px outset #555",
+            backgroundColor: waterEnabled ? "#00ffff33" : "#111",
+            color: waterEnabled ? "#00ffff" : "#888",
+            fontSize: "0.9rem",
+            fontWeight: "bold",
+            cursor: "pointer",
+            transition: "all 0.1s",
+          }}
+        >
+          水体: {waterEnabled ? "开启" : "关闭"}
+        </button>
+
+        <button
+          onClick={() => setFogEnabled(!fogEnabled)}
+          style={{
+            marginLeft: "12px",
             padding: "4px 12px",
             border: fogEnabled ? "3px inset #00ffff" : "3px outset #555",
             backgroundColor: fogEnabled ? "#00ffff33" : "#111",
@@ -258,6 +302,29 @@ export default function SpellLab() {
           }}
         >
           雾效: {fogEnabled ? "开启" : "关闭"}
+        </button>
+
+        <button
+          onClick={() => setFirstPerson((prev) => {
+            const next = !prev;
+            if (next) {
+              setPlayerHp(100);
+            }
+            return next;
+          })}
+          style={{
+            marginLeft: "12px",
+            padding: "4px 12px",
+            border: firstPerson ? "3px inset #00ffff" : "3px outset #555",
+            backgroundColor: firstPerson ? "#00ffff33" : "#111",
+            color: firstPerson ? "#00ffff" : "#888",
+            fontSize: "0.9rem",
+            fontWeight: "bold",
+            cursor: "pointer",
+            transition: "all 0.1s",
+          }}
+        >
+          第一人称 (Q): {firstPerson ? "开启" : "关闭"}
         </button>
       </div>
 
@@ -275,7 +342,145 @@ export default function SpellLab() {
           boxShadow: "0 0 30px #ff00ff44, inset 0 0 30px #00000088",
         }}
       >
-        <DynamicSpellLabScene spell={selectedSpell} viewDistance={viewDistance} fogEnabled={fogEnabled} onCastSpellAction={handleCastSpell} />
+        <DynamicSpellLabScene
+          spell={selectedSpell}
+          viewDistance={viewDistance}
+          fogEnabled={fogEnabled}
+          waterEnabled={waterEnabled}
+          onCastSpellAction={handleCastSpell}
+          firstPerson={firstPerson}
+          playerHp={playerHp}
+          onPlayerHpChange={setPlayerHp}
+        />
+
+        {firstPerson && (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: "24px",
+                height: "24px",
+                transform: "translate(-50%, -50%)",
+                pointerEvents: "none",
+                zIndex: 100,
+              }}
+            >
+              <div style={{ position: "absolute", top: "10px", left: "0", width: "24px", height: "4px", backgroundColor: "#00ff00", boxShadow: "0 0 8px #00ff00" }} />
+              <div style={{ position: "absolute", top: "0", left: "10px", width: "4px", height: "24px", backgroundColor: "#00ff00", boxShadow: "0 0 8px #00ff00" }} />
+              <div style={{ position: "absolute", top: "9px", left: "9px", width: "6px", height: "6px", backgroundColor: "#ffffff", borderRadius: "50%", boxShadow: "0 0 10px #ffffff" }} />
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: "20px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "300px",
+                height: "24px",
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                border: "3px outset #ff00ff",
+                boxShadow: "0 0 15px #ff00ff44",
+                display: "flex",
+                alignItems: "center",
+                padding: "2px",
+                zIndex: 100,
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                style={{
+                  width: `${playerHp}%`,
+                  height: "100%",
+                  backgroundColor: playerHp > 50 ? "#00ff00" : playerHp > 20 ? "#ffaa00" : "#ff0000",
+                  boxShadow: playerHp > 50 ? "0 0 10px #00ff00" : playerHp > 20 ? "0 0 10px #ffaa00" : "0 0 10px #ff0000",
+                  transition: "width 0.2s ease-out",
+                }}
+              />
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  color: "#ffffff",
+                  fontSize: "0.9rem",
+                  fontWeight: "bold",
+                  textShadow: "1px 1px 2px #000000",
+                }}
+              >
+                HP: {playerHp} / 100
+              </span>
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                top: "15px",
+                left: "15px",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                border: "2px outset #00ffff",
+                padding: "6px 12px",
+                color: "#00ffff",
+                fontSize: "0.85rem",
+                fontFamily: "monospace",
+                zIndex: 100,
+                pointerEvents: "none",
+                boxShadow: "0 0 10px #00ffff33",
+              }}
+            >
+              WASD 移动 | 鼠标控制视角 | 点击施法 | Q键退出第一人称
+            </div>
+          </>
+        )}
+
+        {firstPerson && playerHp <= 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(10, 0, 0, 0.85)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 200,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "4rem",
+                fontWeight: "bold",
+                color: "#ff0000",
+                textShadow: "0 0 20px #ff0000",
+                marginBottom: "20px",
+                letterSpacing: "4px",
+              }}
+            >
+              YOU DIED
+            </h2>
+            <button
+              onClick={() => setPlayerHp(100)}
+              style={{
+                padding: "12px 30px",
+                border: "3px outset #00ff00",
+                backgroundColor: "#003300",
+                color: "#00ff00",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                boxShadow: "0 0 15px #00ff00",
+                fontFamily: "inherit",
+              }}
+            >
+              重新复活
+            </button>
+          </div>
+        )}
 
         {/* Reset Button */}
         <button

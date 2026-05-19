@@ -8,3 +8,4 @@ export * from "./entities/ZombieEntity";
 export * from "./spells/InfiniteTerrain";
 export * from "./spells/FluidSimulation";
 export * from "./Effects";
+export * from "./entities/StructureEntity";

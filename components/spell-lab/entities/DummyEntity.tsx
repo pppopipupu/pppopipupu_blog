@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DummyType } from "../types";
@@ -15,6 +15,9 @@ export const DummyEntity = React.memo(function DummyEntity({ data, craters = [] 
   const bodyGroup = useRef<THREE.Group>(null);
   const timeOffset = useMemo(() => Math.random() * 100, []);
   const vy = useRef(0);
+  const { camera } = useThree();
+  const lastPos = useRef(new THREE.Vector3());
+  const isPlayer = data.id === 99999;
   
   useFrame((state, delta) => {
     if (!ref.current) return;
@@ -22,61 +25,85 @@ export const DummyEntity = React.memo(function DummyEntity({ data, craters = [] 
     if (data.hp > 0) {
       const t = state.clock.elapsedTime + timeOffset;
       
-      // 随机改变目标点让小人四处游荡
-      if (Math.random() < 0.02) {
-         const tx = data.pos.x + (Math.random() - 0.5) * 30;
-         const tz = data.pos.z + (Math.random() - 0.5) * 30;
-         const th = getModifiedHeight(tx, tz, craters);
-         data.target.set(tx, th, tz);
-      }
-      
-      const dir = data.target.clone().sub(data.pos);
-      const horizontalDistSq = dir.x * dir.x + dir.z * dir.z;
-      const isMoving = horizontalDistSq > 1;
-      
-      if (isMoving) {
-        const horizontalDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
-        data.pos.addScaledVector(horizontalDir, 5 * delta);
-        const nextTerrainY = getModifiedHeight(data.pos.x, data.pos.z, craters);
-        if (data.pos.y < nextTerrainY) {
-          data.pos.y = nextTerrainY;
+      if (isPlayer) {
+        ref.current.position.copy(data.pos);
+        const camDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+        ref.current.rotation.y = Math.atan2(camDir.x, camDir.z);
+        const distSq = data.pos.distanceToSquared(lastPos.current);
+        const isMoving = distSq > 0.001;
+        lastPos.current.copy(data.pos);
+        
+        if (isMoving) {
+          const walkPhase = t * 15;
+          if (leftLeg.current) leftLeg.current.rotation.x = Math.sin(walkPhase) * 0.5;
+          if (rightLeg.current) rightLeg.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
+          if (leftArm.current) leftArm.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
+          if (rightArm.current) rightArm.current.rotation.x = Math.sin(walkPhase) * 0.5;
+          if (bodyGroup.current) bodyGroup.current.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.1;
+        } else {
+          if (leftLeg.current) leftLeg.current.rotation.x = 0;
+          if (rightLeg.current) rightLeg.current.rotation.x = 0;
+          if (leftArm.current) leftArm.current.rotation.x = 0;
+          if (rightArm.current) rightArm.current.rotation.x = 0;
+          if (bodyGroup.current) bodyGroup.current.position.y = 0;
+        }
+      } else {
+        // 随机改变目标点让小人四处游荡
+        if (Math.random() < 0.02) {
+           const tx = data.pos.x + (Math.random() - 0.5) * 30;
+           const tz = data.pos.z + (Math.random() - 0.5) * 30;
+           const th = getModifiedHeight(tx, tz, craters);
+           data.target.set(tx, th, tz);
         }
         
-        const targetRotation = Math.atan2(horizontalDir.x, horizontalDir.z);
-        // 平滑旋转
-        let diff = targetRotation - ref.current.rotation.y;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        ref.current.rotation.y += diff * 10 * delta;
+        const dir = data.target.clone().sub(data.pos);
+        const horizontalDistSq = dir.x * dir.x + dir.z * dir.z;
+        const isMoving = horizontalDistSq > 1;
+        
+        if (isMoving) {
+          const horizontalDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+          data.pos.addScaledVector(horizontalDir, 5 * delta);
+          const nextTerrainY = getModifiedHeight(data.pos.x, data.pos.z, craters);
+          if (data.pos.y < nextTerrainY) {
+            data.pos.y = nextTerrainY;
+          }
+          
+          const targetRotation = Math.atan2(horizontalDir.x, horizontalDir.z);
+          // 平滑旋转
+          let diff = targetRotation - ref.current.rotation.y;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          ref.current.rotation.y += diff * 10 * delta;
 
-        // 行走动画
-        const walkPhase = t * 15;
-        if (leftLeg.current) leftLeg.current.rotation.x = Math.sin(walkPhase) * 0.5;
-        if (rightLeg.current) rightLeg.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
-        if (leftArm.current) leftArm.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
-        if (rightArm.current) rightArm.current.rotation.x = Math.sin(walkPhase) * 0.5;
-        if (bodyGroup.current) bodyGroup.current.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.1;
-      } else {
-        if (leftLeg.current) leftLeg.current.rotation.x = 0;
-        if (rightLeg.current) rightLeg.current.rotation.x = 0;
-        if (leftArm.current) leftArm.current.rotation.x = 0;
-        if (rightArm.current) rightArm.current.rotation.x = 0;
-        if (bodyGroup.current) bodyGroup.current.position.y = 0;
-      }
-      
-      if (data.pos.y > terrainY + 0.01) {
-        vy.current -= 9.8 * delta;
-        data.pos.y += vy.current * delta;
-        if (data.pos.y <= terrainY) {
+          // 行走动画
+          const walkPhase = t * 15;
+          if (leftLeg.current) leftLeg.current.rotation.x = Math.sin(walkPhase) * 0.5;
+          if (rightLeg.current) rightLeg.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
+          if (leftArm.current) leftArm.current.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
+          if (rightArm.current) rightArm.current.rotation.x = Math.sin(walkPhase) * 0.5;
+          if (bodyGroup.current) bodyGroup.current.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.1;
+        } else {
+          if (leftLeg.current) leftLeg.current.rotation.x = 0;
+          if (rightLeg.current) rightLeg.current.rotation.x = 0;
+          if (leftArm.current) leftArm.current.rotation.x = 0;
+          if (rightArm.current) rightArm.current.rotation.x = 0;
+          if (bodyGroup.current) bodyGroup.current.position.y = 0;
+        }
+        
+        if (data.pos.y > terrainY + 0.01) {
+          vy.current -= 9.8 * delta;
+          data.pos.y += vy.current * delta;
+          if (data.pos.y <= terrainY) {
+            data.pos.y = terrainY;
+            vy.current = 0;
+          }
+        } else {
           data.pos.y = terrainY;
           vy.current = 0;
         }
-      } else {
-        data.pos.y = terrainY;
-        vy.current = 0;
+        
+        ref.current.position.copy(data.pos);
       }
-      
-      ref.current.position.copy(data.pos);
     } else {
       const targetCorpseY = terrainY - 0.4;
       if (data.pos.y > targetCorpseY + 0.01) {
@@ -114,10 +141,12 @@ export const DummyEntity = React.memo(function DummyEntity({ data, craters = [] 
 
       <group ref={bodyGroup} position={[0, 0, 0]}>
         {/* 头 */}
-        <mesh position={[0, 1.8, 0]}>
-          <boxGeometry args={[0.6, 0.6, 0.6]} />
-          <meshStandardMaterial color={hitFlash ? "#ff0000" : (isDead ? "#775544" : "#ffccaa")} emissive={hitFlash ? "#aa0000" : "#000"} />
-        </mesh>
+        {!isPlayer && (
+          <mesh position={[0, 1.8, 0]}>
+            <boxGeometry args={[0.6, 0.6, 0.6]} />
+            <meshStandardMaterial color={hitFlash ? "#ff0000" : (isDead ? "#775544" : "#ffccaa")} emissive={hitFlash ? "#aa0000" : "#000"} />
+          </mesh>
+        )}
         {/* 身体 */}
         <mesh position={[0, 1.1, 0]}>
           <boxGeometry args={[0.8, 0.8, 0.4]} />
