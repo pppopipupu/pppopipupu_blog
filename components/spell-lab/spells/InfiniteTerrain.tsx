@@ -43,12 +43,12 @@ export function getTerrainHeight(x: number, z: number): { height: number; isWate
 
   let height = baseHeight;
   const isWater = waterEnabled && riverVal < 0.04;
-  const baseWaterLevel = -2.0;
+  const baseWaterLevel = isWater ? (baseHeight - 1.5) : -2.0;
 
   if (isWater) {
     const depthFactor = (0.04 - riverVal) / 0.04;
-    const targetRiverBed = -8.0;
-    height = THREE.MathUtils.lerp(baseHeight, Math.min(baseHeight - 6.0, targetRiverBed), depthFactor * 0.95);
+    const targetRiverBed = baseHeight - 5.0;
+    height = THREE.MathUtils.lerp(baseHeight, targetRiverBed, depthFactor * 0.95);
   }
 
   return { height, isWater, baseWaterLevel };
@@ -124,7 +124,6 @@ function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; crat
       }
     }
 
-    const baseWaterLevel = -2.0;
     const colors = [];
 
     for (let i = 0; i < pos.count; i++) {
@@ -134,6 +133,7 @@ function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; crat
       const worldZ = chunkZStart + localZ + CHUNK_SIZE / 2;
 
       const hInfo = getTerrainHeight(worldX, worldZ);
+      const baseWaterLevel = hInfo.baseWaterLevel;
       let finalH = hInfo.height;
 
       for (const c of chunkCraters) {

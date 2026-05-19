@@ -76,7 +76,10 @@ export type StructureType =
   | "shrine"
   | "ruins"
   | "campfire"
-  | "box-pile";
+  | "box-pile"
+  | "angry-cathedral"
+  | "wizard-academy"
+  | "ancient-portal";
 
 export interface StructurePart {
   id: string;
@@ -87,6 +90,7 @@ export interface StructurePart {
   rotation?: THREE.Euler;
   segments?: number;
   segmentsHeight?: number;
+  texture?: "angry";
 }
 
 export interface StructureData {

@@ -718,18 +718,6 @@ function SceneContent({
     const camGridX = Math.floor(camera.position.x / CHUNK_SIZE);
     const camGridZ = Math.floor(camera.position.z / CHUNK_SIZE);
     const totalStructures = viewDistance <= 2 ? 10 : viewDistance <= 3 ? 20 : 35;
-    const types: StructureType[] = [
-      "cabin",
-      "windmill",
-      "mine",
-      "tower",
-      "well",
-      "obelisk",
-      "shrine",
-      "ruins",
-      "campfire",
-      "box-pile"
-    ];
     for (let i = 0; i < totalStructures; i++) {
       const dx = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
       const dz = Math.floor((Math.random() - 0.5) * 2 * viewDistance);
@@ -738,13 +726,40 @@ function SceneContent({
       const x = (cx + Math.random()) * CHUNK_SIZE;
       const z = (cz + Math.random()) * CHUNK_SIZE;
       const hInfo = getTerrainHeight(x, z);
-      const type = types[Math.floor(Math.random() * types.length)];
+      
+      let type: StructureType = "cabin";
+      const roll = Math.random() * 100;
+      if (roll < 2.5) {
+        type = "angry-cathedral";
+      } else if (roll < 5.0) {
+        type = "wizard-academy";
+      } else if (roll < 7.5) {
+        type = "ancient-portal";
+      } else {
+        const commonTypes: StructureType[] = [
+          "cabin",
+          "windmill",
+          "mine",
+          "tower",
+          "well",
+          "obelisk",
+          "shrine",
+          "ruins",
+          "campfire",
+          "box-pile"
+        ];
+        type = commonTypes[Math.floor(Math.random() * commonTypes.length)];
+      }
+
+      const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal";
+      const scale = isRare ? 2.5 + Math.random() * 0.9 : 1.4 + Math.random() * 0.8;
+
       newStructures.push({
         id: i,
         type,
         pos: new THREE.Vector3(x, hInfo.height, z),
         rotation: Math.random() * Math.PI * 2,
-        scale: 1.4 + Math.random() * 0.8,
+        scale,
         parts: generatePartsForStructure(type)
       });
     }
@@ -1087,7 +1102,16 @@ function SceneContent({
   }, [playerHp, onPlayerHpChange, camera]);
 
   const resetScene = useCallback(() => {
+    if (typeof window !== "undefined") {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("spell_lab_chunk_")) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
     setCraters([]);
+    setCratersVersion((v) => v + 1);
     setDebris([]);
     setFireballs([]);
     setLightnings([]);

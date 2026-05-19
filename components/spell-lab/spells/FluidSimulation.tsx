@@ -31,12 +31,14 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
   const prevCx = useRef(cx);
   const prevCz = useRef(cz);
   const prevVD = useRef(viewDistance);
+  const prevCratersLength = useRef(craters.length);
 
   useEffect(() => {
     const t = tGrid.current;
     const w = wGrid.current;
 
-    const chunkShifted = cx !== prevCx.current || cz !== prevCz.current || viewDistance !== prevVD.current;
+    const chunkShifted = cx !== prevCx.current || cz !== prevCz.current || viewDistance !== prevVD.current || craters.length < prevCratersLength.current;
+    prevCratersLength.current = craters.length;
     if (chunkShifted) {
       prevCx.current = cx;
       prevCz.current = cz;

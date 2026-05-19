@@ -115,6 +115,120 @@ export function generatePartsForStructure(type: string): StructurePart[] {
       { id: "barrel_1", localOffset: new THREE.Vector3(0.7, 0.7, -0.7), size: new THREE.Vector3(0.9, 1.4, 0.9), type: "cylinder", color: "#6d4c41", segments: 12 },
       { id: "barrel_2", localOffset: new THREE.Vector3(-0.5, 1.9, -0.5), size: new THREE.Vector3(0.8, 1.2, 0.8), type: "cylinder", color: "#6d4c41", rotation: new THREE.Euler(0, 0, 1.57), segments: 12 }
     );
+  } else if (type === "angry-cathedral") {
+    parts.push(
+      { id: "foundation", localOffset: new THREE.Vector3(0, 0.3, 0), size: new THREE.Vector3(5.5, 0.6, 7.5), type: "box", color: "#424242" },
+      { id: "step_1", localOffset: new THREE.Vector3(0, 0.45, 3.85), size: new THREE.Vector3(2.4, 0.3, 0.6), type: "box", color: "#37474f" },
+      { id: "step_2", localOffset: new THREE.Vector3(0, 0.55, 3.35), size: new THREE.Vector3(2.0, 0.3, 0.6), type: "box", color: "#37474f" },
+      { id: "main_hall", localOffset: new THREE.Vector3(0, 2.1, -0.5), size: new THREE.Vector3(4.0, 3.6, 6.0), type: "box", color: "#616161" },
+      { id: "transept_hall", localOffset: new THREE.Vector3(0, 2.1, -1.5), size: new THREE.Vector3(6.0, 3.6, 2.0), type: "box", color: "#616161" },
+      { id: "roof_hall", localOffset: new THREE.Vector3(0, 3.95, -0.5), size: new THREE.Vector3(4.4, 0.3, 6.4), type: "box", color: "#c62828" },
+      { id: "roof_hall_l", localOffset: new THREE.Vector3(-1.1, 4.5, -0.5), size: new THREE.Vector3(2.5, 0.25, 6.4), type: "box", color: "#c62828", rotation: new THREE.Euler(0, 0, 0.4) },
+      { id: "roof_hall_r", localOffset: new THREE.Vector3(1.1, 4.5, -0.5), size: new THREE.Vector3(2.5, 0.25, 6.4), type: "box", color: "#c62828", rotation: new THREE.Euler(0, 0, -0.4) },
+      { id: "transept_roof", localOffset: new THREE.Vector3(0, 3.95, -1.5), size: new THREE.Vector3(6.4, 0.3, 2.4), type: "box", color: "#c62828" },
+      { id: "buttress_l1", localOffset: new THREE.Vector3(-2.2, 1.5, -3.0), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "buttress_l2", localOffset: new THREE.Vector3(-2.2, 1.5, -0.5), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "buttress_l3", localOffset: new THREE.Vector3(-2.2, 1.5, 2.0), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "buttress_r1", localOffset: new THREE.Vector3(2.2, 1.5, -3.0), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "buttress_r2", localOffset: new THREE.Vector3(2.2, 1.5, -0.5), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "buttress_r3", localOffset: new THREE.Vector3(2.2, 1.5, 2.0), size: new THREE.Vector3(0.4, 3.0, 0.4), type: "box", color: "#424242" },
+      { id: "arch_span_l1", localOffset: new THREE.Vector3(-2.1, 2.8, -3.0), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, -0.5) },
+      { id: "arch_span_l2", localOffset: new THREE.Vector3(-2.1, 2.8, -0.5), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, -0.5) },
+      { id: "arch_span_l3", localOffset: new THREE.Vector3(-2.1, 2.8, 2.0), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, -0.5) },
+      { id: "arch_span_r1", localOffset: new THREE.Vector3(2.1, 2.8, -3.0), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, 0.5) },
+      { id: "arch_span_r2", localOffset: new THREE.Vector3(2.1, 2.8, -0.5), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, 0.5) },
+      { id: "arch_span_r3", localOffset: new THREE.Vector3(2.1, 2.8, 2.0), size: new THREE.Vector3(0.8, 0.25, 0.3), type: "box", color: "#616161", rotation: new THREE.Euler(0, 0, 0.5) },
+      { id: "stained_glass_l1", localOffset: new THREE.Vector3(-2.02, 2.2, -2.0), size: new THREE.Vector3(0.1, 1.6, 0.6), type: "box", color: "#ffeb3b" },
+      { id: "stained_glass_l2", localOffset: new THREE.Vector3(-2.02, 2.2, 0.5), size: new THREE.Vector3(0.1, 1.6, 0.6), type: "box", color: "#ff9800" },
+      { id: "stained_glass_r1", localOffset: new THREE.Vector3(2.02, 2.2, -2.0), size: new THREE.Vector3(0.1, 1.6, 0.6), type: "box", color: "#ffeb3b" },
+      { id: "stained_glass_r2", localOffset: new THREE.Vector3(2.02, 2.2, 0.5), size: new THREE.Vector3(0.1, 1.6, 0.6), type: "box", color: "#ff9800" },
+      { id: "spire_left", localOffset: new THREE.Vector3(-1.8, 3.0, 2.8), size: new THREE.Vector3(1.2, 6.0, 1.2), type: "cylinder", color: "#424242", segments: 12 },
+      { id: "spire_right", localOffset: new THREE.Vector3(1.8, 3.0, 2.8), size: new THREE.Vector3(1.2, 6.0, 1.2), type: "cylinder", color: "#424242", segments: 12 },
+      { id: "spire_cap_l", localOffset: new THREE.Vector3(-1.8, 7.4, 2.8), size: new THREE.Vector3(1.4, 2.8, 1.4), type: "cone", color: "#b71c1c", segments: 12 },
+      { id: "spire_cap_r", localOffset: new THREE.Vector3(1.8, 7.4, 2.8), size: new THREE.Vector3(1.4, 2.8, 1.4), type: "cone", color: "#b71c1c", segments: 12 },
+      { id: "pinnacle_l1", localOffset: new THREE.Vector3(-2.2, 6.0, 3.2), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_l2", localOffset: new THREE.Vector3(-1.4, 6.0, 3.2), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_l3", localOffset: new THREE.Vector3(-2.2, 6.0, 2.4), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_l4", localOffset: new THREE.Vector3(-1.4, 6.0, 2.4), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_r1", localOffset: new THREE.Vector3(2.2, 6.0, 3.2), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_r2", localOffset: new THREE.Vector3(1.4, 6.0, 3.2), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_r3", localOffset: new THREE.Vector3(2.2, 6.0, 2.4), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "pinnacle_r4", localOffset: new THREE.Vector3(1.4, 6.0, 2.4), size: new THREE.Vector3(0.2, 0.8, 0.2), type: "cone", color: "#b71c1c" },
+      { id: "cross_shaft", localOffset: new THREE.Vector3(0, 6.5, 2.8), size: new THREE.Vector3(0.2, 1.8, 0.2), type: "box", color: "#ffeb3b" },
+      { id: "cross_bar", localOffset: new THREE.Vector3(0, 6.9, 2.8), size: new THREE.Vector3(1.2, 0.2, 0.2), type: "box", color: "#ffeb3b" },
+      { id: "gate_pillar_l", localOffset: new THREE.Vector3(-1.0, 1.1, 2.7), size: new THREE.Vector3(0.2, 2.2, 0.2), type: "cylinder", color: "#424242" },
+      { id: "gate_pillar_r", localOffset: new THREE.Vector3(1.0, 1.1, 2.7), size: new THREE.Vector3(0.2, 2.2, 0.2), type: "cylinder", color: "#424242" },
+      { id: "gate_arch_top", localOffset: new THREE.Vector3(0, 2.3, 2.7), size: new THREE.Vector3(2.2, 0.2, 0.2), type: "box", color: "#424242" },
+      { id: "gate_entrance", localOffset: new THREE.Vector3(0, 1.1, 2.6), size: new THREE.Vector3(1.6, 2.2, 0.2), type: "box", color: "#212121" },
+      { id: "angry_god_icon", localOffset: new THREE.Vector3(0, 3.5, 2.55), size: new THREE.Vector3(2.0, 2.0, 0.1), type: "box", color: "#ffffff", texture: "angry" }
+    );
+  } else if (type === "wizard-academy") {
+    parts.push(
+      { id: "island_base", localOffset: new THREE.Vector3(0, -0.5, 0), size: new THREE.Vector3(5.0, 2.2, 5.0), type: "cone", color: "#4e342e", rotation: new THREE.Euler(Math.PI, 0, 0), segments: 12 },
+      { id: "under_chain1", localOffset: new THREE.Vector3(-1.5, -2.0, -1.5), size: new THREE.Vector3(0.2, 2.0, 0.2), type: "cylinder", color: "#78909c" },
+      { id: "under_chain2", localOffset: new THREE.Vector3(1.5, -2.0, -1.5), size: new THREE.Vector3(0.2, 2.0, 0.2), type: "cylinder", color: "#78909c" },
+      { id: "under_chain3", localOffset: new THREE.Vector3(-1.5, -2.0, 1.5), size: new THREE.Vector3(0.2, 2.0, 0.2), type: "cylinder", color: "#78909c" },
+      { id: "under_chain4", localOffset: new THREE.Vector3(1.5, -2.0, 1.5), size: new THREE.Vector3(0.2, 2.0, 0.2), type: "cylinder", color: "#78909c" },
+      { id: "ground_grass", localOffset: new THREE.Vector3(0, 0.6, 0), size: new THREE.Vector3(5.2, 0.3, 5.2), type: "cylinder", color: "#2e7d32", segments: 16 },
+      { id: "step_outer", localOffset: new THREE.Vector3(0, 0.65, 0), size: new THREE.Vector3(4.8, 0.2, 4.8), type: "cylinder", color: "#90a4ae", segments: 16 },
+      { id: "step_inner", localOffset: new THREE.Vector3(0, 0.85, 0), size: new THREE.Vector3(4.4, 0.2, 4.4), type: "cylinder", color: "#b0bec5", segments: 16 },
+      { id: "temple_base", localOffset: new THREE.Vector3(0, 1.05, 0), size: new THREE.Vector3(3.6, 0.6, 3.6), type: "cylinder", color: "#cfd8dc", segments: 16 },
+      { id: "pillar_1", localOffset: new THREE.Vector3(-1.4, 2.25, 0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_2", localOffset: new THREE.Vector3(1.4, 2.25, 0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_3", localOffset: new THREE.Vector3(0, 2.25, -1.4), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_4", localOffset: new THREE.Vector3(0, 2.25, 1.4), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_5", localOffset: new THREE.Vector3(-1.0, 2.25, -1.0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_6", localOffset: new THREE.Vector3(1.0, 2.25, -1.0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_7", localOffset: new THREE.Vector3(-1.0, 2.25, 1.0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "pillar_8", localOffset: new THREE.Vector3(1.0, 2.25, 1.0), size: new THREE.Vector3(0.3, 2.4, 0.3), type: "cylinder", color: "#cfd8dc", segments: 8 },
+      { id: "architrave", localOffset: new THREE.Vector3(0, 3.45, 0), size: new THREE.Vector3(3.6, 0.4, 3.6), type: "cylinder", color: "#b0bec5", segments: 16 },
+      { id: "roof_cone", localOffset: new THREE.Vector3(0, 4.45, 0), size: new THREE.Vector3(3.8, 2.0, 3.8), type: "cone", color: "#283593", segments: 16 },
+      { id: "tele_base", localOffset: new THREE.Vector3(0, 5.5, 0), size: new THREE.Vector3(0.6, 0.6, 0.6), type: "cylinder", color: "#ffb74d" },
+      { id: "tele_shaft", localOffset: new THREE.Vector3(0.3, 6.2, 0.3), size: new THREE.Vector3(0.25, 1.6, 0.25), type: "cylinder", color: "#ffd54f", rotation: new THREE.Euler(0.6, 0, 0.6) },
+      { id: "tele_lens", localOffset: new THREE.Vector3(0.7, 6.9, 0.7), size: new THREE.Vector3(0.4, 0.3, 0.4), type: "cylinder", color: "#00e5ff", rotation: new THREE.Euler(0.6, 0, 0.6) },
+      { id: "brazier_chain", localOffset: new THREE.Vector3(0, 3.2, 0), size: new THREE.Vector3(0.05, 0.8, 0.05), type: "cylinder", color: "#ffd54f" },
+      { id: "brazier_cup", localOffset: new THREE.Vector3(0, 2.7, 0), size: new THREE.Vector3(0.5, 0.2, 0.5), type: "cylinder", color: "#ffb74d" },
+      { id: "float_step_1", localOffset: new THREE.Vector3(0, 0.2, 3.3), size: new THREE.Vector3(0.8, 0.15, 0.5), type: "box", color: "#b0bec5", rotation: new THREE.Euler(0.1, 0, 0) },
+      { id: "float_step_2", localOffset: new THREE.Vector3(0.2, 0.0, 4.1), size: new THREE.Vector3(0.7, 0.15, 0.5), type: "box", color: "#90a4ae", rotation: new THREE.Euler(-0.1, 0.2, 0) },
+      { id: "float_step_3", localOffset: new THREE.Vector3(-0.1, -0.2, 4.9), size: new THREE.Vector3(0.8, 0.15, 0.5), type: "box", color: "#78909c", rotation: new THREE.Euler(0, -0.2, -0.1) },
+      { id: "rune_core", localOffset: new THREE.Vector3(0, 2.0, 0), size: new THREE.Vector3(1.0, 1.0, 1.0), type: "sphere", color: "#00e5ff", segments: 12, segmentsHeight: 8 },
+      { id: "floating_rune_1", localOffset: new THREE.Vector3(-2.0, 2.0, 0), size: new THREE.Vector3(0.4, 0.4, 0.4), type: "box", color: "#e040fb", rotation: new THREE.Euler(0.4, 0.4, 0.4) },
+      { id: "floating_rune_2", localOffset: new THREE.Vector3(2.0, 2.0, 0), size: new THREE.Vector3(0.4, 0.4, 0.4), type: "box", color: "#e040fb", rotation: new THREE.Euler(-0.4, -0.4, -0.4) },
+      { id: "floating_rune_3", localOffset: new THREE.Vector3(0, 2.0, -2.0), size: new THREE.Vector3(0.4, 0.4, 0.4), type: "box", color: "#e040fb", rotation: new THREE.Euler(0.4, -0.4, 0.4) },
+      { id: "floating_rune_4", localOffset: new THREE.Vector3(0, 2.0, 2.0), size: new THREE.Vector3(0.4, 0.4, 0.4), type: "box", color: "#e040fb", rotation: new THREE.Euler(-0.4, 0.4, -0.4) }
+    );
+  } else if (type === "ancient-portal") {
+    parts.push(
+      { id: "gate_base", localOffset: new THREE.Vector3(0, 0.3, 0), size: new THREE.Vector3(6.0, 0.6, 2.0), type: "box", color: "#37474f" },
+      { id: "step_1", localOffset: new THREE.Vector3(0, 0.4, 1.4), size: new THREE.Vector3(4.0, 0.2, 0.8), type: "box", color: "#263238" },
+      { id: "step_2", localOffset: new THREE.Vector3(0, 0.5, 1.1), size: new THREE.Vector3(3.6, 0.2, 0.8), type: "box", color: "#263238" },
+      { id: "pillar_left", localOffset: new THREE.Vector3(-2.2, 3.35, 0), size: new THREE.Vector3(1.2, 5.5, 1.2), type: "box", color: "#455a64" },
+      { id: "pillar_right", localOffset: new THREE.Vector3(2.2, 3.35, 0), size: new THREE.Vector3(1.2, 5.5, 1.2), type: "box", color: "#455a64" },
+      { id: "pillar_l_inner", localOffset: new THREE.Vector3(-1.6, 3.35, -0.1), size: new THREE.Vector3(0.6, 5.5, 0.8), type: "box", color: "#37474f" },
+      { id: "pillar_r_inner", localOffset: new THREE.Vector3(1.6, 3.35, -0.1), size: new THREE.Vector3(0.6, 5.5, 0.8), type: "box", color: "#37474f" },
+      { id: "arch_top", localOffset: new THREE.Vector3(0, 6.7, 0), size: new THREE.Vector3(5.6, 1.2, 1.2), type: "box", color: "#37474f" },
+      { id: "arch_top_inner", localOffset: new THREE.Vector3(0, 6.1, -0.1), size: new THREE.Vector3(3.8, 0.6, 0.8), type: "box", color: "#263238" },
+      { id: "chevron_l1", localOffset: new THREE.Vector3(-2.3, 1.5, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "chevron_l2", localOffset: new THREE.Vector3(-2.3, 3.3, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "chevron_l3", localOffset: new THREE.Vector3(-2.3, 5.1, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "chevron_r1", localOffset: new THREE.Vector3(2.3, 1.5, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "chevron_r2", localOffset: new THREE.Vector3(2.3, 3.3, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "chevron_r3", localOffset: new THREE.Vector3(2.3, 5.1, 0.6), size: new THREE.Vector3(0.3, 0.4, 0.3), type: "box", color: "#ff3d00" },
+      { id: "obelisk_base_l", localOffset: new THREE.Vector3(-3.8, 0.8, 0), size: new THREE.Vector3(0.8, 1.6, 0.8), type: "box", color: "#455a64" },
+      { id: "obelisk_tip_l", localOffset: new THREE.Vector3(-3.8, 2.1, 0), size: new THREE.Vector3(0.6, 1.0, 0.6), type: "cone", color: "#ffd54f" },
+      { id: "obelisk_base_r", localOffset: new THREE.Vector3(3.8, 0.8, 0), size: new THREE.Vector3(0.8, 1.6, 0.8), type: "box", color: "#455a64" },
+      { id: "obelisk_tip_r", localOffset: new THREE.Vector3(3.8, 2.1, 0), size: new THREE.Vector3(0.6, 1.0, 0.6), type: "cone", color: "#ffd54f" },
+      { id: "cooling_fin_1", localOffset: new THREE.Vector3(-1.5, 7.6, 0), size: new THREE.Vector3(0.2, 0.8, 1.0), type: "box", color: "#263238" },
+      { id: "cooling_fin_2", localOffset: new THREE.Vector3(-0.5, 7.6, 0), size: new THREE.Vector3(0.2, 0.8, 1.0), type: "box", color: "#263238" },
+      { id: "cooling_fin_3", localOffset: new THREE.Vector3(0.5, 7.6, 0), size: new THREE.Vector3(0.2, 0.8, 1.0), type: "box", color: "#263238" },
+      { id: "cooling_fin_4", localOffset: new THREE.Vector3(1.5, 7.6, 0), size: new THREE.Vector3(0.2, 0.8, 1.0), type: "box", color: "#263238" },
+      { id: "flare_1", localOffset: new THREE.Vector3(-1.0, 3.35, 0.2), size: new THREE.Vector3(0.3, 0.3, 0.3), type: "sphere", color: "#00e5ff" },
+      { id: "flare_2", localOffset: new THREE.Vector3(1.0, 3.35, 0.2), size: new THREE.Vector3(0.3, 0.3, 0.3), type: "sphere", color: "#00e5ff" },
+      { id: "portal_shield_l", localOffset: new THREE.Vector3(-1.4, 5.0, 0.6), size: new THREE.Vector3(0.4, 1.6, 0.4), type: "box", color: "#ffb74d", rotation: new THREE.Euler(0.5, 0.5, 0.5) },
+      { id: "portal_shield_r", localOffset: new THREE.Vector3(1.4, 5.0, 0.6), size: new THREE.Vector3(0.4, 1.6, 0.4), type: "box", color: "#ffb74d", rotation: new THREE.Euler(-0.5, -0.5, -0.5) },
+      { id: "portal_energy_core", localOffset: new THREE.Vector3(0, 3.35, 0), size: new THREE.Vector3(3.0, 4.2, 0.2), type: "sphere", color: "#00e5ff", segments: 16, segmentsHeight: 12 },
+      { id: "portal_crystal", localOffset: new THREE.Vector3(0, 8.2, 0), size: new THREE.Vector3(0.8, 1.4, 0.8), type: "cone", color: "#e040fb", segments: 8 }
+    );
   }
   return parts;
 }
@@ -130,6 +244,8 @@ export const StructureEntity = React.memo(function StructureEntity({
 }) {
   const ref = useRef<THREE.Group>(null);
   const windmillBladesRef = useRef<THREE.Group>(null);
+  const academyRunesRef = useRef<THREE.Group>(null);
+  const portalGroupRef = useRef<THREE.Group>(null);
   const destroyedPartsRef = useRef<Record<string, boolean>>({});
 
   const wobbleX = useRef(0);
@@ -148,6 +264,14 @@ export const StructureEntity = React.memo(function StructureEntity({
   const lastCraterCount = useRef(craters.length);
 
   const timeOffset = useMemo(() => Math.random() * 100, []);
+
+  const angryTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load("/face_angry.png");
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
 
   const partStatuses = useMemo(() => {
     const statuses: Record<string, { isDestroyed: boolean; worldPos: THREE.Vector3 }> = {};
@@ -260,6 +384,22 @@ export const StructureEntity = React.memo(function StructureEntity({
     if (windmillBladesRef.current) {
       windmillBladesRef.current.rotation.z = state.clock.elapsedTime * 1.5;
     }
+    if (academyRunesRef.current) {
+      academyRunesRef.current.rotation.y = state.clock.elapsedTime * 1.0;
+      academyRunesRef.current.position.y = Math.sin(state.clock.elapsedTime * 2.0) * 0.15;
+    }
+    if (portalGroupRef.current) {
+      const crystalMesh = portalGroupRef.current.getObjectByName("portal_crystal");
+      if (crystalMesh) {
+        crystalMesh.position.y = 8.2 + Math.sin(state.clock.elapsedTime * 2.0) * 0.25;
+        crystalMesh.rotation.y = state.clock.elapsedTime * 0.8;
+      }
+      const coreMesh = portalGroupRef.current.getObjectByName("portal_energy_core");
+      if (coreMesh) {
+        const pulse = 1.0 + Math.sin(state.clock.elapsedTime * 4.0) * 0.04;
+        coreMesh.scale.set(pulse, pulse, 1.0);
+      }
+    }
   });
 
   const renderGeometry = (part: StructurePart) => {
@@ -285,29 +425,55 @@ export const StructureEntity = React.memo(function StructureEntity({
     return (
       <mesh
         key={part.id}
+        name={part.id}
         position={part.localOffset}
         rotation={rotationVal}
         castShadow
         receiveShadow
       >
         {renderGeometry(part)}
-        <meshStandardMaterial 
-          color={flash ? "#ffffff" : part.color} 
-          emissive={flash ? "#ffffff" : "#000000"} 
-          emissiveIntensity={flash ? 0.8 : 0} 
-          flatShading 
-          roughness={0.8} 
-        />
+        {part.texture === "angry" && angryTexture ? (
+          <meshStandardMaterial 
+            map={angryTexture}
+            emissive={flash ? "#ffffff" : "#000000"} 
+            emissiveIntensity={flash ? 0.8 : 0} 
+            flatShading 
+            roughness={0.8} 
+          />
+        ) : (
+          <meshStandardMaterial 
+            color={flash ? "#ffffff" : part.color} 
+            emissive={flash ? "#ffffff" : "#000000"} 
+            emissiveIntensity={flash ? 0.8 : 0} 
+            flatShading 
+            roughness={0.8} 
+          />
+        )}
       </mesh>
     );
   };
 
   const isWindmill = data.type === "windmill";
+  const isAcademy = data.type === "wizard-academy";
+  const isPortal = data.type === "ancient-portal";
+
   const staticParts = data.parts.filter(
-    (p) => !isWindmill || (p.id !== "hub" && !p.id.startsWith("blade_"))
+    (p) => 
+      (!isWindmill || (p.id !== "hub" && !p.id.startsWith("blade_"))) &&
+      (!isAcademy || !p.id.startsWith("floating_rune_")) &&
+      (!isPortal || (p.id !== "portal_crystal" && p.id !== "portal_energy_core"))
   );
-  const dynamicParts = data.parts.filter(
+
+  const windmillDynamicParts = data.parts.filter(
     (p) => isWindmill && (p.id === "hub" || p.id.startsWith("blade_"))
+  );
+
+  const academyDynamicParts = data.parts.filter(
+    (p) => isAcademy && p.id.startsWith("floating_rune_")
+  );
+
+  const portalDynamicParts = data.parts.filter(
+    (p) => isPortal && (p.id === "portal_crystal" || p.id === "portal_energy_core")
   );
 
   return (
@@ -315,7 +481,7 @@ export const StructureEntity = React.memo(function StructureEntity({
       {staticParts.map((part) => renderPartMesh(part))}
       {isWindmill && (
         <group ref={windmillBladesRef} position={[0, 7.15, 0]}>
-          {dynamicParts.map((part) => {
+          {windmillDynamicParts.map((part) => {
             const status = partStatuses[part.id];
             if (status?.isDestroyed) return null;
 
@@ -325,6 +491,7 @@ export const StructureEntity = React.memo(function StructureEntity({
             return (
               <mesh
                 key={part.id}
+                name={part.id}
                 position={relativeOffset}
                 rotation={rotationVal}
                 castShadow
@@ -341,6 +508,16 @@ export const StructureEntity = React.memo(function StructureEntity({
               </mesh>
             );
           })}
+        </group>
+      )}
+      {isAcademy && (
+        <group ref={academyRunesRef}>
+          {academyDynamicParts.map((part) => renderPartMesh(part))}
+        </group>
+      )}
+      {isPortal && (
+        <group ref={portalGroupRef}>
+          {portalDynamicParts.map((part) => renderPartMesh(part))}
         </group>
       )}
     </group>
