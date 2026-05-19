@@ -79,7 +79,8 @@ export type StructureType =
   | "box-pile"
   | "angry-cathedral"
   | "wizard-academy"
-  | "ancient-portal";
+  | "ancient-portal"
+  | "angry-mirror";
 
 export interface StructurePart {
   id: string;

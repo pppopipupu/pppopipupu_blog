@@ -229,6 +229,18 @@ export function generatePartsForStructure(type: string): StructurePart[] {
       { id: "portal_energy_core", localOffset: new THREE.Vector3(0, 3.35, 0), size: new THREE.Vector3(3.0, 4.2, 0.2), type: "sphere", color: "#00e5ff", segments: 16, segmentsHeight: 12 },
       { id: "portal_crystal", localOffset: new THREE.Vector3(0, 8.2, 0), size: new THREE.Vector3(0.8, 1.4, 0.8), type: "cone", color: "#e040fb", segments: 8 }
     );
+  } else if (type === "angry-mirror") {
+    parts.push(
+      { id: "mirror_pedestal", localOffset: new THREE.Vector3(0, 0.4, 0), size: new THREE.Vector3(4.5, 0.8, 4.5), type: "box", color: "#263238" },
+      { id: "mirror_step", localOffset: new THREE.Vector3(0, 0.9, 0), size: new THREE.Vector3(3.2, 0.4, 3.2), type: "box", color: "#37474f" },
+      { id: "pillar_l", localOffset: new THREE.Vector3(-1.8, 3.2, 0), size: new THREE.Vector3(0.6, 4.2, 0.6), type: "box", color: "#455a64" },
+      { id: "pillar_r", localOffset: new THREE.Vector3(1.8, 3.2, 0), size: new THREE.Vector3(0.6, 4.2, 0.6), type: "box", color: "#455a64" },
+      { id: "frame_top", localOffset: new THREE.Vector3(0, 5.4, 0), size: new THREE.Vector3(4.2, 0.6, 0.6), type: "box", color: "#37474f" },
+      { id: "mirror_surface", localOffset: new THREE.Vector3(0, 3.2, 0), size: new THREE.Vector3(3.0, 3.8, 0.2), type: "box", color: "#00e5ff" },
+      { id: "angry_god_icon", localOffset: new THREE.Vector3(0, 6.2, 0), size: new THREE.Vector3(1.6, 1.6, 0.15), type: "box", color: "#ffffff", texture: "angry" },
+      { id: "orb_l", localOffset: new THREE.Vector3(-1.8, 5.6, 0), size: new THREE.Vector3(0.6, 0.6, 0.6), type: "sphere", color: "#e040fb" },
+      { id: "orb_r", localOffset: new THREE.Vector3(1.8, 5.6, 0), size: new THREE.Vector3(0.6, 0.6, 0.6), type: "sphere", color: "#e040fb" }
+    );
   }
   return parts;
 }
@@ -246,6 +258,7 @@ export const StructureEntity = React.memo(function StructureEntity({
   const windmillBladesRef = useRef<THREE.Group>(null);
   const academyRunesRef = useRef<THREE.Group>(null);
   const portalGroupRef = useRef<THREE.Group>(null);
+  const mirrorGroupRef = useRef<THREE.Group>(null);
   const destroyedPartsRef = useRef<Record<string, boolean>>({});
 
   const wobbleX = useRef(0);
@@ -400,6 +413,21 @@ export const StructureEntity = React.memo(function StructureEntity({
         coreMesh.scale.set(pulse, pulse, 1.0);
       }
     }
+    if (mirrorGroupRef.current) {
+      const surfaceMesh = mirrorGroupRef.current.getObjectByName("mirror_surface");
+      if (surfaceMesh) {
+        const pulse = 1.0 + Math.sin(state.clock.elapsedTime * 3.0) * 0.05;
+        surfaceMesh.scale.set(pulse, pulse, 1.0);
+      }
+      const orbL = mirrorGroupRef.current.getObjectByName("orb_l");
+      const orbR = mirrorGroupRef.current.getObjectByName("orb_r");
+      if (orbL) {
+        orbL.position.y = 5.6 + Math.sin(state.clock.elapsedTime * 2.5) * 0.15;
+      }
+      if (orbR) {
+        orbR.position.y = 5.6 + Math.sin(state.clock.elapsedTime * 2.5 + Math.PI) * 0.15;
+      }
+    }
   });
 
   const renderGeometry = (part: StructurePart) => {
@@ -456,12 +484,14 @@ export const StructureEntity = React.memo(function StructureEntity({
   const isWindmill = data.type === "windmill";
   const isAcademy = data.type === "wizard-academy";
   const isPortal = data.type === "ancient-portal";
+  const isMirror = data.type === "angry-mirror";
 
   const staticParts = data.parts.filter(
     (p) => 
       (!isWindmill || (p.id !== "hub" && !p.id.startsWith("blade_"))) &&
       (!isAcademy || !p.id.startsWith("floating_rune_")) &&
-      (!isPortal || (p.id !== "portal_crystal" && p.id !== "portal_energy_core"))
+      (!isPortal || (p.id !== "portal_crystal" && p.id !== "portal_energy_core")) &&
+      (!isMirror || (p.id !== "mirror_surface" && p.id !== "orb_l" && p.id !== "orb_r"))
   );
 
   const windmillDynamicParts = data.parts.filter(
@@ -474,6 +504,10 @@ export const StructureEntity = React.memo(function StructureEntity({
 
   const portalDynamicParts = data.parts.filter(
     (p) => isPortal && (p.id === "portal_crystal" || p.id === "portal_energy_core")
+  );
+
+  const mirrorDynamicParts = data.parts.filter(
+    (p) => isMirror && (p.id === "mirror_surface" || p.id === "orb_l" || p.id === "orb_r")
   );
 
   return (
@@ -518,6 +552,11 @@ export const StructureEntity = React.memo(function StructureEntity({
       {isPortal && (
         <group ref={portalGroupRef}>
           {portalDynamicParts.map((part) => renderPartMesh(part))}
+        </group>
+      )}
+      {isMirror && (
+        <group ref={mirrorGroupRef}>
+          {mirrorDynamicParts.map((part) => renderPartMesh(part))}
         </group>
       )}
     </group>

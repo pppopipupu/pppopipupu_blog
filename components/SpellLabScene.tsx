@@ -620,12 +620,14 @@ function SceneContent({
               
               let type: StructureType = "cabin";
               const roll = Math.random() * 100;
-              if (roll < 10.0) {
+              if (roll < 2.5) {
                 type = "angry-cathedral";
-              } else if (roll < 20.0) {
+              } else if (roll < 5.0) {
                 type = "wizard-academy";
-              } else if (roll < 30.0) {
+              } else if (roll < 7.5) {
                 type = "ancient-portal";
+              } else if (roll < 10.0) {
+                type = "angry-mirror";
               } else {
                 const commonTypes: StructureType[] = [
                   "cabin",
@@ -641,8 +643,8 @@ function SceneContent({
                 ];
                 type = commonTypes[Math.floor(Math.random() * commonTypes.length)];
               }
-              const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal";
-              const scale = isRare ? 5.0 + Math.random() * 3.0 : 1.4 + Math.random() * 0.8;
+              const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal" || type === "angry-mirror";
+              const scale = isRare ? 4.0 + Math.random() * 2.0 : 1.4 + Math.random() * 0.8;
 
               return {
                 ...s,
@@ -746,12 +748,14 @@ function SceneContent({
       
       let type: StructureType = "cabin";
       const roll = Math.random() * 100;
-      if (roll < 10.0) {
+      if (roll < 2.5) {
         type = "angry-cathedral";
-      } else if (roll < 20.0) {
+      } else if (roll < 5.0) {
         type = "wizard-academy";
-      } else if (roll < 30.0) {
+      } else if (roll < 7.5) {
         type = "ancient-portal";
+      } else if (roll < 10.0) {
+        type = "angry-mirror";
       } else {
         const commonTypes: StructureType[] = [
           "cabin",
@@ -768,8 +772,8 @@ function SceneContent({
         type = commonTypes[Math.floor(Math.random() * commonTypes.length)];
       }
 
-      const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal";
-      const scale = isRare ? 5.0 + Math.random() * 3.0 : 1.4 + Math.random() * 0.8;
+      const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal" || type === "angry-mirror";
+      const scale = isRare ? 4.0 + Math.random() * 2.0 : 1.4 + Math.random() * 0.8;
 
       newStructures.push({
         id: i,
