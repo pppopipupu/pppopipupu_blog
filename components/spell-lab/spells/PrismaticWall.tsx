@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { DummyType } from "../types";
+import { DummyType, DamageType } from "../types";
 
-export function PrismaticWall({ start, end, onDone, applyDamage }: { start: THREE.Vector3, end: THREE.Vector3, onDone: () => void, applyDamage: (hitTest: any, min: number, max: number, color: string) => void }) {
+export function PrismaticWall({ start, end, onDone, applyDamage }: { start: THREE.Vector3, end: THREE.Vector3, onDone: () => void, applyDamage: (hitTest: (d: DummyType) => boolean, min: number, max: number, damageType: DamageType) => void }) {
   const ref = useRef<THREE.Group>(null);
   const life = useRef(0);
   const dist = start.distanceTo(end);
@@ -32,11 +32,19 @@ export function PrismaticWall({ start, end, onDone, applyDamage }: { start: THRE
   useEffect(() => {
     const interval = setInterval(() => {
       const line = new THREE.Line3(start, end);
-      applyDamage((d: DummyType) => {
+      const hitTest = (d: DummyType) => {
         const closest = new THREE.Vector3();
         line.closestPointToPoint(d.pos, true, closest);
         return d.pos.distanceTo(closest) < 3.5; // Increased hit radius
-      }, 6, 60, "rainbow");
+      };
+
+      applyDamage(hitTest, 10, 60, "fire");
+      applyDamage(hitTest, 10, 60, "acid");
+      applyDamage(hitTest, 10, 60, "lightning");
+      applyDamage(hitTest, 10, 60, "poison");
+      applyDamage(hitTest, 10, 60, "cold");
+      applyDamage(hitTest, 10, 60, "thunder");
+      applyDamage(hitTest, 10, 60, "radiant");
     }, 1000);
     return () => clearInterval(interval);
   }, [start, end, applyDamage]);

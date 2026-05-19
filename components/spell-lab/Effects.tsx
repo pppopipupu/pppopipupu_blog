@@ -144,13 +144,41 @@ export function BloodParticles({ pos, onDone }: { pos: THREE.Vector3; onDone: ()
 /* ==================== Damage Text ==================== */
 export function DamageText({ pos, text, color, onDone }: { pos: THREE.Vector3; text: string; color: string; onDone: () => void }) {
   const ref = useRef<THREE.Group>(null);
+  const divRef = useRef<HTMLDivElement>(null);
   const life = useRef(0);
+
+  const physics = useMemo(() => {
+    return {
+      vx: (Math.random() - 0.5) * 6,
+      vy: 8 + Math.random() * 4,
+      vz: (Math.random() - 0.5) * 6,
+      x: pos.x,
+      y: pos.y + 1.5,
+      z: pos.z
+    };
+  }, [pos]);
 
   useFrame((_, delta) => {
     life.current += delta;
+    
+    physics.vy -= 20 * delta;
+    physics.x += physics.vx * delta;
+    physics.y += physics.vy * delta;
+    physics.z += physics.vz * delta;
+
+    if (physics.y < 0.2) {
+      physics.y = 0.2;
+      physics.vy = -physics.vy * 0.4;
+      physics.vx *= 0.6;
+      physics.vz *= 0.6;
+    }
+
     if (ref.current) {
-      ref.current.position.y += delta * 2;
+      ref.current.position.set(physics.x, physics.y, physics.z);
       ref.current.scale.setScalar(Math.max(0.01, 1 - life.current / 1.5));
+    }
+    if (divRef.current) {
+      divRef.current.style.opacity = Math.max(0, 1 - life.current / 1.5).toString();
     }
     if (life.current > 1.5) onDone();
   });
@@ -159,7 +187,7 @@ export function DamageText({ pos, text, color, onDone }: { pos: THREE.Vector3; t
   const style: React.CSSProperties = {
     fontWeight: "bold",
     fontSize: "32px",
-    fontFamily: "Impact, sans-serif",
+    fontFamily: '"Maple Mono NL", sans-serif',
     pointerEvents: "none",
     userSelect: "none",
     color: isRainbow ? "transparent" : color,
@@ -173,7 +201,7 @@ export function DamageText({ pos, text, color, onDone }: { pos: THREE.Vector3; t
   return (
     <group ref={ref} position={[pos.x, pos.y + 1.5, pos.z]}>
       <Html center zIndexRange={[100, 0]}>
-        <div style={style}>{text}</div>
+        <div ref={divRef} style={style}>{text}</div>
       </Html>
     </group>
   );

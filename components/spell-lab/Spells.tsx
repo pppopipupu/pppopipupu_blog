@@ -4,4 +4,7 @@ export * from "./spells/LightningStrike";
 export * from "./spells/DisintegrateRay";
 export * from "./spells/PrismaticWall";
 export * from "./entities/DummyEntity";
+export * from "./entities/ZombieEntity";
+export * from "./spells/InfiniteTerrain";
+export * from "./spells/FluidSimulation";
 export * from "./Effects";

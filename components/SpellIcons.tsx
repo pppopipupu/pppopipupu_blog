@@ -187,3 +187,58 @@ function PrismaticWallContent({ active }: { active: boolean }) {
     </>
   );
 }
+
+export function AnimateDeadIcon({ active }: { active: boolean }) {
+  return (
+    <div style={{ width: "40px", height: "40px", pointerEvents: "none" }}>
+      <Canvas camera={{ position: [0, 0, 3], fov: 50 }} gl={{ antialias: true }}>
+        <ambientLight intensity={0.5} />
+        <AnimateDeadContent active={active} />
+      </Canvas>
+    </div>
+  );
+}
+
+function AnimateDeadContent({ active }: { active: boolean }) {
+  const meshRef = useRef<THREE.Group>(null);
+  
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      if (active) {
+        meshRef.current.rotation.y = clock.elapsedTime * 2;
+        meshRef.current.position.y = Math.sin(clock.elapsedTime * 4) * 0.1;
+      } else {
+        meshRef.current.rotation.y = 0;
+        meshRef.current.position.y = 0;
+      }
+    }
+  });
+
+  return (
+    <>
+      <group ref={meshRef}>
+        <mesh position={[0, 0.25, 0]}>
+          <boxGeometry args={[0.9, 0.8, 0.8]} />
+          <meshBasicMaterial color={active ? "#a020f0" : "#441166"} wireframe={!active} />
+        </mesh>
+        <mesh position={[0, -0.25, 0]}>
+          <boxGeometry args={[0.6, 0.4, 0.7]} />
+          <meshBasicMaterial color={active ? "#7b1fa2" : "#300747"} wireframe={!active} />
+        </mesh>
+        <mesh position={[-0.2, 0.25, 0.38]}>
+          <sphereGeometry args={[0.12, 8, 8]} />
+          <meshBasicMaterial color={active ? "#00ffcc" : "#003322"} />
+        </mesh>
+        <mesh position={[0.2, 0.25, 0.38]}>
+          <sphereGeometry args={[0.12, 8, 8]} />
+          <meshBasicMaterial color={active ? "#00ffcc" : "#003322"} />
+        </mesh>
+      </group>
+      {active && (
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.2} mipmapBlur intensity={2.5} radius={0.5} />
+        </EffectComposer>
+      )}
+    </>
+  );
+}

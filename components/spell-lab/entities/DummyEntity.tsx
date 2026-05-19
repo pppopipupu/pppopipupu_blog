@@ -3,8 +3,10 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DummyType } from "../types";
+import { getTerrainHeight, getModifiedHeight } from "../spells/InfiniteTerrain";
 
-export function DummyEntity({ data }: { data: DummyType }) {
+export const DummyEntity = React.memo(function DummyEntity({ data, craters = [] }: { data: DummyType; craters?: { x: number; z: number; r: number; d: number }[] }) {
+  if (data.consumed) return null;
   const ref = useRef<THREE.Group>(null);
   const leftLeg = useRef<THREE.Mesh>(null);
   const rightLeg = useRef<THREE.Mesh>(null);
@@ -12,29 +14,35 @@ export function DummyEntity({ data }: { data: DummyType }) {
   const rightArm = useRef<THREE.Mesh>(null);
   const bodyGroup = useRef<THREE.Group>(null);
   const timeOffset = useMemo(() => Math.random() * 100, []);
+  const vy = useRef(0);
   
   useFrame((state, delta) => {
     if (!ref.current) return;
+    const terrainY = getModifiedHeight(data.pos.x, data.pos.z, craters);
     if (data.hp > 0) {
       const t = state.clock.elapsedTime + timeOffset;
       
       // 随机改变目标点让小人四处游荡
       if (Math.random() < 0.02) {
-         data.target.set(
-           data.pos.x + (Math.random() - 0.5) * 30,
-           0,
-           data.pos.z + (Math.random() - 0.5) * 30
-         );
+         const tx = data.pos.x + (Math.random() - 0.5) * 30;
+         const tz = data.pos.z + (Math.random() - 0.5) * 30;
+         const th = getModifiedHeight(tx, tz, craters);
+         data.target.set(tx, th, tz);
       }
       
       const dir = data.target.clone().sub(data.pos);
-      const isMoving = dir.lengthSq() > 1;
+      const horizontalDistSq = dir.x * dir.x + dir.z * dir.z;
+      const isMoving = horizontalDistSq > 1;
       
       if (isMoving) {
-        dir.normalize();
-        data.pos.addScaledVector(dir, 5 * delta); // 移动速度
+        const horizontalDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+        data.pos.addScaledVector(horizontalDir, 5 * delta);
+        const nextTerrainY = getModifiedHeight(data.pos.x, data.pos.z, craters);
+        if (data.pos.y < nextTerrainY) {
+          data.pos.y = nextTerrainY;
+        }
         
-        const targetRotation = Math.atan2(dir.x, dir.z);
+        const targetRotation = Math.atan2(horizontalDir.x, horizontalDir.z);
         // 平滑旋转
         let diff = targetRotation - ref.current.rotation.y;
         while (diff < -Math.PI) diff += Math.PI * 2;
@@ -56,11 +64,35 @@ export function DummyEntity({ data }: { data: DummyType }) {
         if (bodyGroup.current) bodyGroup.current.position.y = 0;
       }
       
+      if (data.pos.y > terrainY + 0.01) {
+        vy.current -= 9.8 * delta;
+        data.pos.y += vy.current * delta;
+        if (data.pos.y <= terrainY) {
+          data.pos.y = terrainY;
+          vy.current = 0;
+        }
+      } else {
+        data.pos.y = terrainY;
+        vy.current = 0;
+      }
+      
       ref.current.position.copy(data.pos);
     } else {
+      const targetCorpseY = terrainY - 0.4;
+      if (data.pos.y > targetCorpseY + 0.01) {
+        vy.current -= 9.8 * delta;
+        data.pos.y += vy.current * delta;
+        if (data.pos.y <= targetCorpseY) {
+          data.pos.y = targetCorpseY;
+          vy.current = 0;
+        }
+      } else {
+        data.pos.y = THREE.MathUtils.lerp(data.pos.y, targetCorpseY, 5 * delta);
+        vy.current = 0;
+      }
       // 死亡动画：仰面倒下并下沉
       ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, -Math.PI / 2, 5 * delta);
-      ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, -0.4, 5 * delta);
+      ref.current.position.copy(data.pos);
     }
   });
 
@@ -72,7 +104,7 @@ export function DummyEntity({ data }: { data: DummyType }) {
 
   return (
     <group ref={ref} position={data.pos}>
-      {!isDead && (
+      {!isDead && data.hp < data.maxHp && (
         <Html position={[0, 2.8, 0]} center style={{ pointerEvents: "none" }}>
           <div style={{ width: "40px", height: "6px", background: "#333", border: "1px solid #000" }}>
             <div style={{ width: `${Math.max(0, hpPercent) * 100}%`, height: "100%", background: hpColor, transition: "width 0.2s" }} />
@@ -120,4 +152,4 @@ export function DummyEntity({ data }: { data: DummyType }) {
       </group>
     </group>
   );
-}
+});
