@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import DynamicSpellLabScene from "@/components/DynamicSpellLabScene";
@@ -22,6 +22,21 @@ export default function SpellLab() {
   const [fogEnabled, setFogEnabled] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [dbCastCount, setDbCastCount] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button === 1) {
+        e.preventDefault();
+      }
+    };
+    el.addEventListener("mousedown", handleMouseDown, { passive: false });
+    return () => {
+      el.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -248,11 +263,12 @@ export default function SpellLab() {
 
       {/* Canvas Container */}
       <div
+        ref={containerRef}
         style={{
-          width: "95%",
-          maxWidth: "1600px",
-          height: "80vh",
-          minHeight: "600px",
+          width: "98%",
+          maxWidth: "1800px",
+          height: "85vh",
+          minHeight: "750px",
           border: "5px inset #ff00ff",
           backgroundColor: "#0a0a1a",
           position: "relative",
