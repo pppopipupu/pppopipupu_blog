@@ -221,6 +221,7 @@ function KeyboardControls({
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.2);
       } else if (controlsRef.current) {
         controlsRef.current.target.add(move);
+        controlsRef.current.update();
       }
     } else if (firstPerson) {
       const hInfo = getTerrainHeight(camera.position.x, camera.position.z);
@@ -616,25 +617,39 @@ function SceneContent({
               const x = (cx + Math.random()) * CHUNK_SIZE;
               const z = (cz + Math.random()) * CHUNK_SIZE;
               const hInfo = getTerrainHeight(x, z);
-              const types: StructureType[] = [
-                "cabin",
-                "windmill",
-                "mine",
-                "tower",
-                "well",
-                "obelisk",
-                "shrine",
-                "ruins",
-                "campfire",
-                "box-pile"
-              ];
-              const type = types[Math.floor(Math.random() * types.length)];
+              
+              let type: StructureType = "cabin";
+              const roll = Math.random() * 100;
+              if (roll < 10.0) {
+                type = "angry-cathedral";
+              } else if (roll < 20.0) {
+                type = "wizard-academy";
+              } else if (roll < 30.0) {
+                type = "ancient-portal";
+              } else {
+                const commonTypes: StructureType[] = [
+                  "cabin",
+                  "windmill",
+                  "mine",
+                  "tower",
+                  "well",
+                  "obelisk",
+                  "shrine",
+                  "ruins",
+                  "campfire",
+                  "box-pile"
+                ];
+                type = commonTypes[Math.floor(Math.random() * commonTypes.length)];
+              }
+              const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal";
+              const scale = isRare ? 5.0 + Math.random() * 3.0 : 1.4 + Math.random() * 0.8;
+
               return {
                 ...s,
                 type,
                 pos: new THREE.Vector3(x, hInfo.height, z),
                 rotation: Math.random() * Math.PI * 2,
-                scale: 1.4 + Math.random() * 0.8,
+                scale,
                 parts: generatePartsForStructure(type)
               };
             }
@@ -731,11 +746,11 @@ function SceneContent({
       
       let type: StructureType = "cabin";
       const roll = Math.random() * 100;
-      if (roll < 2.5) {
+      if (roll < 10.0) {
         type = "angry-cathedral";
-      } else if (roll < 5.0) {
+      } else if (roll < 20.0) {
         type = "wizard-academy";
-      } else if (roll < 7.5) {
+      } else if (roll < 30.0) {
         type = "ancient-portal";
       } else {
         const commonTypes: StructureType[] = [
@@ -754,7 +769,7 @@ function SceneContent({
       }
 
       const isRare = type === "angry-cathedral" || type === "wizard-academy" || type === "ancient-portal";
-      const scale = isRare ? 2.5 + Math.random() * 0.9 : 1.4 + Math.random() * 0.8;
+      const scale = isRare ? 5.0 + Math.random() * 3.0 : 1.4 + Math.random() * 0.8;
 
       newStructures.push({
         id: i,
@@ -1105,12 +1120,21 @@ function SceneContent({
 
   const resetScene = useCallback(() => {
     if (typeof window !== "undefined") {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith("spell_lab_chunk_")) {
-          localStorage.removeItem(key);
+          keysToRemove.push(key);
         }
       }
+      for (const key of keysToRemove) {
+        localStorage.removeItem(key);
+      }
+    }
+    camera.position.set(0, 60, 80);
+    if (controls) {
+      (controls as any).target.set(0, 0, 0);
+      (controls as any).update();
     }
     setCraters([]);
     setCratersVersion((v) => v + 1);
@@ -1126,7 +1150,7 @@ function SceneContent({
     spawnDummies();
     spawnStructures();
     spawnPlants();
-  }, [spawnDummies, spawnStructures, spawnPlants]);
+  }, [camera, controls, spawnDummies, spawnStructures, spawnPlants]);
 
   useFrame(() => {
     if (firstPerson) {

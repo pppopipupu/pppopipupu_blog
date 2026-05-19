@@ -40,6 +40,45 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
     const chunkShifted = cx !== prevCx.current || cz !== prevCz.current || viewDistance !== prevVD.current || craters.length < prevCratersLength.current;
     prevCratersLength.current = craters.length;
     if (chunkShifted) {
+      if (initialized.current) {
+        const oldCenterWorldX = prevCx.current * CHUNK_SIZE + CHUNK_SIZE / 2;
+        const oldCenterWorldZ = prevCz.current * CHUNK_SIZE + CHUNK_SIZE / 2;
+        const oldRange = (2 * prevVD.current + 1) * CHUNK_SIZE;
+        const oldCellSize = oldRange / SIZE;
+        const chunkDataMap: Record<string, Record<string, number>> = {};
+        for (let z = 0; z < SIZE; z++) {
+          for (let x = 0; x < SIZE; x++) {
+            const idx = x + z * SIZE;
+            const localW = w[idx];
+            if (localW > 0.01) {
+              const wx = oldCenterWorldX - oldRange / 2 + x * oldCellSize;
+              const wz = oldCenterWorldZ - oldRange / 2 + z * oldCellSize;
+              const chunkX = Math.floor(wx / CHUNK_SIZE);
+              const chunkZ = Math.floor(wz / CHUNK_SIZE);
+              const chunkKey = `spell_lab_chunk_${chunkX}_${chunkZ}`;
+              if (!chunkDataMap[chunkKey]) {
+                chunkDataMap[chunkKey] = {};
+              }
+              const coordKey = `${Math.round(wx * 10) / 10}_${Math.round(wz * 10) / 10}`;
+              chunkDataMap[chunkKey][coordKey] = localW;
+            }
+          }
+        }
+        if (typeof window !== "undefined") {
+          Object.keys(chunkDataMap).forEach((chunkKey) => {
+            const waterMap = chunkDataMap[chunkKey];
+            const saved = localStorage.getItem(chunkKey);
+            let parsed: any = {};
+            if (saved) {
+              try {
+                parsed = JSON.parse(saved);
+              } catch {}
+            }
+            parsed.water = waterMap;
+            localStorage.setItem(chunkKey, JSON.stringify(parsed));
+          });
+        }
+      }
       prevCx.current = cx;
       prevCz.current = cz;
       prevVD.current = viewDistance;
@@ -52,6 +91,25 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
       flowU.current.fill(0);
       flowD.current.fill(0);
 
+      const loadedChunks: Record<string, any> = {};
+      if (typeof window !== "undefined") {
+        const minChunkX = Math.floor((centerWorldX - range / 2) / CHUNK_SIZE);
+        const maxChunkX = Math.floor((centerWorldX + range / 2) / CHUNK_SIZE);
+        const minChunkZ = Math.floor((centerWorldZ - range / 2) / CHUNK_SIZE);
+        const maxChunkZ = Math.floor((centerWorldZ + range / 2) / CHUNK_SIZE);
+        for (let chx = minChunkX - 1; chx <= maxChunkX + 1; chx++) {
+          for (let chz = minChunkZ - 1; chz <= maxChunkZ + 1; chz++) {
+            const chunkKey = `spell_lab_chunk_${chx}_${chz}`;
+            const saved = localStorage.getItem(chunkKey);
+            if (saved) {
+              try {
+                loadedChunks[chunkKey] = JSON.parse(saved);
+              } catch {}
+            }
+          }
+        }
+      }
+
       for (let z = 0; z < SIZE; z++) {
         for (let x = 0; x < SIZE; x++) {
           const idx = x + z * SIZE;
@@ -60,7 +118,18 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
           const hInfo = getTerrainHeight(wx, wz);
           const baseH = getModifiedHeight(wx, wz, craters);
           t[idx] = baseH;
-          w[idx] = hInfo.isWater ? Math.max(0, hInfo.baseWaterLevel - baseH) : 0;
+
+          const chunkX = Math.floor(wx / CHUNK_SIZE);
+          const chunkZ = Math.floor(wz / CHUNK_SIZE);
+          const chunkKey = `spell_lab_chunk_${chunkX}_${chunkZ}`;
+          const chunkData = loadedChunks[chunkKey];
+          const coordKey = `${Math.round(wx * 10) / 10}_${Math.round(wz * 10) / 10}`;
+          
+          if (chunkData && chunkData.water && chunkData.water[coordKey] !== undefined) {
+            w[idx] = chunkData.water[coordKey];
+          } else {
+            w[idx] = hInfo.isWater ? Math.max(0, hInfo.baseWaterLevel - baseH) : 0;
+          }
         }
       }
       initialized.current = true;
@@ -75,6 +144,52 @@ export function FluidSimulation({ craters, cameraPos, viewDistance = 3 }: { crat
       }
     }
   }, [craters, cx, cz, viewDistance, centerWorldX, centerWorldZ, range, cellSize]);
+
+  useEffect(() => {
+    return () => {
+      if (initialized.current) {
+        const w = wGrid.current;
+        const currentCenterWorldX = prevCx.current * CHUNK_SIZE + CHUNK_SIZE / 2;
+        const currentCenterWorldZ = prevCz.current * CHUNK_SIZE + CHUNK_SIZE / 2;
+        const currentRange = (2 * prevVD.current + 1) * CHUNK_SIZE;
+        const currentCellSize = currentRange / SIZE;
+        const chunkDataMap: Record<string, Record<string, number>> = {};
+        for (let z = 0; z < SIZE; z++) {
+          for (let x = 0; x < SIZE; x++) {
+            const idx = x + z * SIZE;
+            const localW = w[idx];
+            if (localW > 0.01) {
+              const wx = currentCenterWorldX - currentRange / 2 + x * currentCellSize;
+              const wz = currentCenterWorldZ - currentRange / 2 + z * currentCellSize;
+              const chunkX = Math.floor(wx / CHUNK_SIZE);
+              const chunkZ = Math.floor(wz / CHUNK_SIZE);
+              const chunkKey = `spell_lab_chunk_${chunkX}_${chunkZ}`;
+              if (!chunkDataMap[chunkKey]) {
+                chunkDataMap[chunkKey] = {};
+              }
+              const coordKey = `${Math.round(wx * 10) / 10}_${Math.round(wz * 10) / 10}`;
+              chunkDataMap[chunkKey][coordKey] = localW;
+            }
+          }
+        }
+        if (typeof window !== "undefined") {
+          Object.keys(chunkDataMap).forEach((chunkKey) => {
+            const waterMap = chunkDataMap[chunkKey];
+            const saved = localStorage.getItem(chunkKey);
+            let parsed: any = {};
+            if (saved) {
+              try {
+                parsed = JSON.parse(saved);
+              } catch {}
+            }
+            parsed.water = waterMap;
+            localStorage.setItem(chunkKey, JSON.stringify(parsed));
+          });
+        }
+      }
+    };
+  }, []);
+
 
   const geo = useMemo(() => {
     const g = new THREE.PlaneGeometry(range, range, SIZE - 1, SIZE - 1);
