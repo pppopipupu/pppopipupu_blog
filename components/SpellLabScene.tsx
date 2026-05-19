@@ -383,6 +383,13 @@ function SceneContent({
     return loader.load("/face_angry.png");
   }, []);
 
+  const moonMeshRef = useRef<THREE.Mesh>(null);
+  const moonTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    return loader.load("/face_cry_angry.png");
+  }, []);
+
   useEffect(() => {
     if (firstPerson) {
       const targetX = (controls && (controls as any).target) ? (controls as any).target.x : 0;
@@ -464,6 +471,13 @@ function SceneContent({
         sunMeshRef.current.position.copy(sunWorldPos);
         sunMeshRef.current.lookAt(state.camera.position);
         sunMeshRef.current.visible = sunPos.y > -10;
+      }
+
+      if (moonMeshRef.current) {
+        const moonWorldPos = sunPos.clone().negate().normalize().multiplyScalar(450).add(state.camera.position);
+        moonMeshRef.current.position.copy(moonWorldPos);
+        moonMeshRef.current.lookAt(state.camera.position);
+        moonMeshRef.current.visible = sunPos.y < 10;
       }
 
       structures.forEach((s) => {
@@ -1176,6 +1190,19 @@ function SceneContent({
               map={sunTexture} 
               transparent 
               color={new THREE.Color(2.0, 1.6, 0.4)} 
+              depthWrite={false} 
+              toneMapped={false} 
+            />
+          </mesh>
+        )}
+
+        {moonTexture && (
+          <mesh ref={moonMeshRef}>
+            <planeGeometry args={[80, 80]} />
+            <meshBasicMaterial 
+              map={moonTexture} 
+              transparent 
+              color={new THREE.Color(0.8, 0.9, 1.0)} 
               depthWrite={false} 
               toneMapped={false} 
             />
