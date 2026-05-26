@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 import DynamicGlassOverlay from "@/components/DynamicGlassOverlay";
 import DynamicArcaneCursorTrail from "@/components/DynamicArcaneCursorTrail";
+import DynamicMusicPlayer from "@/components/DynamicMusicPlayer";
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <DynamicGlassOverlay />
         <DynamicArcaneCursorTrail />
+        <DynamicMusicPlayer />
         {children}
         <script
           dangerouslySetInnerHTML={{

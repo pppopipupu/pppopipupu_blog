@@ -20,6 +20,10 @@ This is a Next.js (App Router) project with a focus on a React Three Fiber (R3F)
 │   │   ├── Effects.tsx   # Reusable particle and visual effects
 │   │   ├── Spells.tsx    # Central export for spell components
 │   │   └── types.ts      # Shared TypeScript interfaces and constants
+│   ├── music-player/     # Music player sub-specifications
+│   │   └── AGENTS.md     # Sub-specification for the Y2K music player
+│   ├── MusicPlayer.tsx           # Winamp-styled Y2K music player component
+│   ├── DynamicMusicPlayer.tsx    # SSR disabled wrapper for music player
 │   ├── SpellLabScene.tsx         # Main R3F Canvas and scene orchestration
 │   ├── DynamicSpellLabScene.tsx  # Next.js dynamic import wrapper (SSR disabled)
 │   ├── GlassOverlay.tsx          # UI overlay for spell selection and stats
@@ -45,3 +49,6 @@ To maintain high development efficiency, the project specifications are modulari
 
 3. For modifications to the 3D Spell Laboratory elements:
    - Entity physics, animation loops, terrain generation, or shallow water simulation: Read [components/spell-lab/AGENTS.md](components/spell-lab/AGENTS.md)
+
+4. For modifications to the Music Player, playlist logic, or R3F border particle physics:
+   - Music player architecture, glitched physical simulation, and scan workflow: Read [components/music-player/AGENTS.md](file:///c:/Users/pppop/Desktop/pppopipupu_blog/components/music-player/AGENTS.md)
