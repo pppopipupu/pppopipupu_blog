@@ -296,6 +296,17 @@ export default function ArchiveNavPage() {
           </span>
         </div>
       </Link>
+
+      <span style={{
+        marginTop: "35px",
+        fontSize: "0.8rem",
+        color: "#444444",
+        fontFamily: "monospace",
+        pointerEvents: "none",
+        userSelect: "none"
+      }}>
+        Credits: CrpBnrz
+      </span>
     </div>
   );
 }
