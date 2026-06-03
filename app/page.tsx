@@ -366,6 +366,44 @@ export default function Home() {
           loading="lazy"
         />
       </div>
+
+      {/* 警告区与空白占位区 */}
+      <div style={{
+        marginTop: "100px",
+        marginBottom: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "80%",
+        maxWidth: "800px",
+        textAlign: "center"
+      }}>
+        <p className="blink-text" style={{
+          color: "#ff0000",
+          fontSize: "2rem",
+          fontWeight: "bold",
+          textShadow: "2px 2px 0px #000",
+          margin: "0 0 12px 0",
+          fontFamily: "monospace"
+        }}>
+          ⚠ WARNING // DANGER ZONE ⚠
+        </p>
+        <p style={{
+          color: "#ffff00",
+          fontSize: "1.1rem",
+          fontWeight: "bold",
+          fontFamily: "monospace",
+          lineHeight: "1.6",
+          margin: "0"
+        }}>
+          警告：下方为Archive区，非战斗人员请撤离。
+        </p>
+      </div>
+
+      {/* 巨大的空白延伸区 */}
+      <div style={{ height: "60vh" }} />
+
       {/* ARCHIVE PORTAL (LAZY-LOADED) */}
       <DynamicArchivePortal />
     </div>
