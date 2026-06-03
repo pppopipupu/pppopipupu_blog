@@ -1,40 +1,99 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
+import fs from "fs";
+import path from "path";
 
-interface ArchiveLink {
-  label: string;
-  path: string;
+interface ArchiveFile {
+  title: string;
+  relativePath: string;
 }
 
-interface ArchiveItem {
-  name: string;
-  date: string;
-  description: string;
-  links: ArchiveLink[];
+interface ArchiveGroup {
+  dirName: string;
+  files: ArchiveFile[];
 }
 
-// 存档列表：用户可以在此轻松添加新的归档网页
-const ARCHIVE_LIST: ArchiveItem[] = [
-  {
-    name: "HeartMCMOD Wiki",
-    date: "2026-06-03",
-    description: "HeartMCMOD Wiki 的离线镜像存档。",
-    links: [
-      {
-        label: "📖 Wiki 首页",
-        path: "/archive/HeartMCMOD Wiki/HeartMCMOD Official Wiki ｜ Fandom (2026_6_3 08：01：49).html"
-      },
-      {
-        label: "📑 所有页面索引",
-        path: "/archive/HeartMCMOD Wiki/所有页面 ｜ HeartMCMOD Official Wiki ｜ Fandom (2026_6_3 07：47：00).html"
-      }
-    ]
+// 在构建期递归扫描 public/archive 目录以列出所有子 H5 页面
+function getArchives(): ArchiveGroup[] {
+  const archiveDir = path.join(process.cwd(), "public", "archive");
+  const groups: ArchiveGroup[] = [];
+
+  if (!fs.existsSync(archiveDir)) {
+    return [];
   }
-];
+
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+  // 递归扫描
+  function scan(dir: string, currentGroup: ArchiveGroup) {
+    const items = fs.readdirSync(dir);
+    items.sort(); // 确保文件名排序一致
+
+    for (const item of items) {
+      if (item.startsWith(".")) continue; // 忽略隐藏文件
+
+      const fullPath = path.join(dir, item);
+      const stat = fs.statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        const relativeDirName = path.relative(archiveDir, fullPath).replace(/\\/g, "/");
+        const subGroup: ArchiveGroup = {
+          dirName: relativeDirName,
+          files: []
+        };
+        scan(fullPath, subGroup);
+        if (subGroup.files.length > 0) {
+          subGroup.files.sort((a, b) => a.title.localeCompare(b.title));
+          groups.push(subGroup);
+        }
+      } else if (item.endsWith(".html")) {
+        // 计算带有 basePath 的相对路径
+        const relativeToPublic = basePath + "/" + path.relative(path.join(process.cwd(), "public"), fullPath).replace(/\\/g, "/");
+        
+        // 净化标题：移除扩展名、｜ Fandom 等无用后缀
+        let title = item.replace(/\.html$/, "");
+        const pipeIndex = title.indexOf("｜");
+        if (pipeIndex !== -1) {
+          title = title.substring(0, pipeIndex).trim();
+        }
+        const engPipeIndex = title.indexOf("|");
+        if (engPipeIndex !== -1) {
+          title = title.substring(0, engPipeIndex).trim();
+        }
+
+        currentGroup.files.push({
+          title: title || item,
+          relativePath: relativeToPublic
+        });
+      }
+    }
+  }
+
+  const rootGroup: ArchiveGroup = {
+    dirName: "根目录 (Root)",
+    files: []
+  };
+
+  scan(archiveDir, rootGroup);
+
+  if (rootGroup.files.length > 0) {
+    rootGroup.files.sort((a, b) => a.title.localeCompare(b.title));
+    groups.unshift(rootGroup);
+  }
+
+  // 按照目录名字排序（根目录除外）
+  const otherGroups = groups.filter(g => g !== rootGroup);
+  otherGroups.sort((a, b) => a.dirName.localeCompare(b.dirName));
+
+  if (groups.includes(rootGroup)) {
+    return [rootGroup, ...otherGroups];
+  }
+  return otherGroups;
+}
 
 export default function ArchiveNavPage() {
+  const archiveGroups = getArchives();
+
   return (
     <div
       style={{
@@ -52,7 +111,7 @@ export default function ArchiveNavPage() {
         overflowX: "hidden"
       }}
     >
-      {/* 复古动画样式定义 */}
+      {/* 复古动画与 Y2K 样式定义 */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes blink {
@@ -83,7 +142,7 @@ export default function ArchiveNavPage() {
             color: #ffff00;
             border: 3px solid #ff00ff;
             padding: 8px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             box-shadow: 4px 4px 0px #00ffff;
             font-family: monospace;
             font-weight: bold;
@@ -97,41 +156,51 @@ export default function ArchiveNavPage() {
             0%   { transform: translate(0, 0); }
             100% { transform: translate(-100%, 0); }
           }
-          table.archive-table {
-            border: 5px outset #00ffff;
-            background-color: #000080;
-            color: #ffffff;
+          .archive-window {
             width: 80%;
             max-width: 900px;
-            border-collapse: separate;
-            border-spacing: 2px;
-            box-shadow: 8px 8px 0px #ff00ff;
-            margin-bottom: 40px;
-          }
-          table.archive-table th {
-            border: 2px inset #ff00ff;
-            background-color: #0a0040;
-            color: #ffff00;
-            padding: 12px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            font-family: sans-serif;
-          }
-          table.archive-table td {
-            border: 2px inset #00ffff;
+            border: 5px outset #00ffff;
+            background-color: #000080;
             padding: 15px;
-            background-color: #000044;
+            margin-bottom: 35px;
+            box-shadow: 8px 8px 0px #ff00ff;
+          }
+          .archive-window-header {
+            background-color: #0a0040;
+            border: 2px inset #ff00ff;
+            padding: 8px 12px;
+            marginBottom: 15px;
+            color: #ffff00;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+          }
+          .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
           }
           .archive-link {
             color: #00ffff;
             text-decoration: underline;
             font-weight: bold;
+            display: block;
+            padding: 10px;
+            border: 1px dashed #00ffff;
+            background-color: #000044;
+            text-align: left;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .archive-link:hover {
-            color: #ff00ff;
+            color: #000000;
             text-decoration: none;
             background-color: #ffff00;
-            color: #000;
             cursor: crosshair;
           }
           @keyframes bounceX {
@@ -142,16 +211,6 @@ export default function ArchiveNavPage() {
             display: inline-block;
             position: relative;
             animation: bounceX 0.8s ease-in-out infinite alternate;
-          }
-          .guide-panel {
-            width: 80%;
-            max-width: 900px;
-            border: 4px outset #ff00ff;
-            background-color: #111111;
-            padding: 20px;
-            margin-bottom: 50px;
-            box-shadow: 6px 6px 0px #00ff00;
-            font-family: monospace;
           }
           .back-btn:hover {
             transform: scale(1.08);
@@ -185,52 +244,39 @@ export default function ArchiveNavPage() {
         </span>
       </div>
 
-      {/* 归档表格 */}
-      <table className="archive-table">
-        <thead>
-          <tr>
-            <th style={{ width: "20%" }}>存档时间</th>
-            <th style={{ width: "25%" }}>项目名称</th>
-            <th style={{ width: "35%" }}>说明</th>
-            <th style={{ width: "20%" }}>传送门</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ARCHIVE_LIST.map((item, index) => (
-            <tr key={index}>
-              <td style={{ textAlign: "center", fontFamily: "monospace", color: "#00ff00", fontWeight: "bold" }}>
-                {item.date}
-              </td>
-              <td style={{ color: "#ffff00", fontWeight: "bold", fontSize: "1.1rem" }}>
-                {item.name}
-              </td>
-              <td style={{ color: "#ffffff", fontSize: "0.95rem", lineHeight: "1.4" }}>
-                {item.description}
-              </td>
-              <td>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {item.links.map((link, lIndex) => (
-                    <a
-                      key={lIndex}
-                      href={encodeURI(link.path)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="archive-link"
-                      style={{ display: "block", textAlign: "center", padding: "5px", border: "1px dashed #00ffff" }}
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
+      {/* 动态扫描并分组显示 H5 网页的 Y2K 窗口 */}
+      {archiveGroups.length === 0 ? (
+        <div className="archive-window" style={{ textAlign: "center", padding: "30px", color: "#ff0000", fontWeight: "bold" }}>
+          [ SYSTEM ERROR: 没有检测到任何归档网页。请检查 public/archive/ 目录 ]
+        </div>
+      ) : (
+        archiveGroups.map((group, gIndex) => (
+          <div key={gIndex} className="archive-window">
+            {/* 窗口头部 */}
+            <div className="archive-window-header">
+              📁 CATEGORY // {group.dirName}
+            </div>
+            {/* 网页格子平铺 */}
+            <div className="archive-grid">
+              {group.files.map((file, fIndex) => (
+                <a
+                  key={fIndex}
+                  href={encodeURI(file.relativePath)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="archive-link"
+                  title={file.title}
+                >
+                  📄 {file.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
 
       {/* 返回主站按钮 */}
-      <Link href="/" style={{ textDecoration: "none" }}>
+      <Link href="/" style={{ textDecoration: "none", marginTop: "20px" }}>
         <div className="back-btn" style={{
           border: "5px outset #00ff00",
           backgroundColor: "#004400",
