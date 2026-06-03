@@ -7,6 +7,7 @@ import { Center, Text3D, Float } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Giscus from "@giscus/react";
+import DynamicArchivePortal from "@/components/DynamicArchivePortal";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -365,6 +366,8 @@ export default function Home() {
           loading="lazy"
         />
       </div>
+      {/* ARCHIVE PORTAL (LAZY-LOADED) */}
+      <DynamicArchivePortal />
     </div>
   );
 }
