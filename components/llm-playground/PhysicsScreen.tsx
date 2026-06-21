@@ -58,6 +58,25 @@ function MouseCollider() {
 }
 
 export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
+  React.useEffect(() => {
+    return () => {
+      // 显式清理 WebGL 渲染器资源，强制浏览器丢弃上下文并收回所有 GPU 显存
+      const gl = (window as any).activeWebGLRenderer;
+      if (gl) {
+        try {
+          gl.dispose();
+          const extension = gl.getContext().getExtension('WEBGL_lose_context');
+          if (extension) {
+            extension.loseContext();
+          }
+        } catch (e) {
+          console.warn("WebGL dispose failed:", e);
+        }
+        (window as any).activeWebGLRenderer = null;
+      }
+    };
+  }, []);
+
   return (
     <div
       style={{
@@ -85,7 +104,12 @@ export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
         }}
       />
 
-      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+      <Canvas 
+        camera={{ position: [0, 0, 10], fov: 60 }}
+        onCreated={({ gl }) => {
+          (window as any).activeWebGLRenderer = gl;
+        }}
+      >
         <ambientLight intensity={0.4} />
         <pointLight position={[10, 10, 10]} intensity={1.5} color="#00ffff" />
         <pointLight position={[-10, -10, -10]} intensity={1.0} color="#ff00ff" />

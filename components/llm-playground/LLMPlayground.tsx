@@ -14,7 +14,7 @@ export default function LLMPlayground() {
   const [loadingMsg, setLoadingMsg] = useState("Awaiting neural connection...");
   const [activeFile, setActiveFile] = useState("");
   const [loadedBytes, setLoadedBytes] = useState(0);
-  const [totalBytes, setTotalBytes] = useState(0);
+  const [setTotalBytes] = useState(0);
   const [activeDevice, setActiveDevice] = useState<"webgpu" | "wasm" | "">("");
 
   // 聊天状态
@@ -436,7 +436,7 @@ export default function LLMPlayground() {
                 🚨 警告老板：在低配手机或移动端设备上强行运行 Gemma-4 E2B 模型可能会导致设备过载并直接当场爆炸！
               </div>
               <div style={{ color: "#888", fontSize: "0.8rem", marginTop: "2px" }}>
-                💡 友情提示：如遇跨域 (CORS) 报错或网络下载卡死，请点击下方中止按钮，切换至 HuggingFace Hub 官方源重新尝试。
+                💡 友情提示：如遇下载失败或推理时显卡崩溃（WebGL context lost），建议点击下方中止并改选 SmolLM2 135M 模型；如遇跨域报错请尝试切换到 HuggingFace Hub 官方源。
               </div>
             </div>
 

@@ -111,7 +111,13 @@ async function generate(messages: any[], maxTokens = 256) {
       },
     });
 
-    await generator(messages, {
+    // 应用模型的 Chat Template 将对话历史渲染为 Prompt 字符串
+    const prompt = generator.tokenizer.apply_chat_template(messages, {
+      tokenize: false,
+      add_generation_prompt: true,
+    });
+
+    await generator(prompt, {
       max_new_tokens: maxTokens,
       streamer: streamer,
       temperature: 0.7,
