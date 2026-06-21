@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Physics, RigidBody, CuboidCollider, BallCollider, RapierRigidBody } from "@react-three/rapier";
+// @ts-ignore
+import { WebGPURenderer } from "three/webgpu";
 
 export interface PhysicalItem {
   id: string;
@@ -60,12 +62,23 @@ function MouseCollider() {
 export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
   React.useEffect(() => {
     return () => {
-      // 显式清理 WebGL 渲染器资源，强制浏览器丢弃上下文并收回所有 GPU 显存
-      const gl = (window as any).activeWebGLRenderer;
-      if (gl) {
+      // 显式清理 WebGPURenderer 显存
+      const webgpuGl = (window as any).activeWebGPURenderer;
+      if (webgpuGl) {
         try {
-          gl.dispose();
-          const extension = gl.getContext().getExtension('WEBGL_lose_context');
+          webgpuGl.dispose();
+        } catch (e) {
+          console.warn("WebGPURenderer dispose failed:", e);
+        }
+        (window as any).activeWebGPURenderer = null;
+      }
+
+      // 同时也清理旧的 WebGLRenderer（以防降级时存在）
+      const webglGl = (window as any).activeWebGLRenderer;
+      if (webglGl) {
+        try {
+          webglGl.dispose();
+          const extension = webglGl.getContext().getExtension('WEBGL_lose_context');
           if (extension) {
             extension.loseContext();
           }
@@ -106,8 +119,22 @@ export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
 
       <Canvas 
         camera={{ position: [0, 0, 10], fov: 60 }}
+        gl={(canvas) => {
+          if (typeof navigator !== "undefined" && "gpu" in navigator) {
+            // @ts-ignore
+            const renderer = new WebGPURenderer({ canvas, antialias: true, alpha: true });
+            renderer.init().catch((e: any) => console.error("WebGPURenderer init error:", e));
+            return renderer;
+          }
+          return undefined as any; // 降级让 R3F 默认创建 WebGLRenderer
+        }}
         onCreated={({ gl }) => {
-          (window as any).activeWebGLRenderer = gl;
+          const rawGl = gl as any;
+          if (rawGl && (rawGl.isWebGPURenderer || typeof rawGl.init === "function")) {
+            (window as any).activeWebGPURenderer = rawGl;
+          } else {
+            (window as any).activeWebGLRenderer = rawGl;
+          }
         }}
       >
         <ambientLight intensity={0.4} />

@@ -14,8 +14,9 @@ export default function LLMPlayground() {
   const [loadingMsg, setLoadingMsg] = useState("Awaiting neural connection...");
   const [activeFile, setActiveFile] = useState("");
   const [loadedBytes, setLoadedBytes] = useState(0);
-  const [setTotalBytes] = useState(0);
+  const [totalBytes, setTotalBytes] = useState(0);
   const [activeDevice, setActiveDevice] = useState<"webgpu" | "wasm" | "">("");
+  const [selectedDevice, setSelectedDevice] = useState<"gpu" | "cpu">("gpu");
 
   // 聊天状态
   const [chatHistory, setChatHistory] = useState<Message[]>([
@@ -147,6 +148,7 @@ export default function LLMPlayground() {
       type: "start",
       modelId: selectedModel,
       remoteHost: selectedSource,
+      preferredDevice: selectedDevice,
     });
   };
 
@@ -367,6 +369,28 @@ export default function LLMPlayground() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <label style={{ color: "#00ffff", fontWeight: "bold", fontSize: "0.9rem" }}>
+                  ⚙️ 选择计算引擎 (ENGINE):
+                </label>
+                <select
+                  value={selectedDevice}
+                  onChange={(e) => setSelectedDevice(e.target.value as "gpu" | "cpu")}
+                  style={{
+                    backgroundColor: "#000000",
+                    color: "#00ff00",
+                    border: "2px inset #00ffff",
+                    padding: "5px",
+                    fontSize: "0.9rem",
+                    fontFamily: "monospace",
+                    cursor: "crosshair"
+                  }}
+                >
+                  <option value="gpu">WebGPU (High Speed - May Hang)</option>
+                  <option value="cpu">WASM (CPU - Safe & Compatible)</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label style={{ color: "#00ffff", fontWeight: "bold", fontSize: "0.9rem" }}>
                   📡 选择数据通道 (GATEWAY):
                 </label>
                 <select
@@ -436,7 +460,7 @@ export default function LLMPlayground() {
                 🚨 警告老板：在低配手机或移动端设备上强行运行 Gemma-4 E2B 模型可能会导致设备过载并直接当场爆炸！
               </div>
               <div style={{ color: "#888", fontSize: "0.8rem", marginTop: "2px" }}>
-                💡 友情提示：如遇下载失败或推理时显卡崩溃（WebGL context lost），建议点击下方中止并改选 SmolLM2 135M 模型；如遇跨域报错请尝试切换到 HuggingFace Hub 官方源。
+                💡 友情提示：如遇下载失败或推理时显卡风扇起飞但卡死不吐字，建议点击下方中止，将 ENGINE 选择器切换为 WASM (CPU) 模式并重新加载，或者改用较小型的 SmolLM2 135M 模型；如遇跨域报错请尝试切换到 HuggingFace Hub 官方源。
               </div>
             </div>
 
