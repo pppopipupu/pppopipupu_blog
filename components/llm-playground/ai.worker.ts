@@ -3,6 +3,15 @@ import { pipeline, TextStreamer, env } from "@huggingface/transformers";
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
+// 指定 ONNX Runtime Web 的 WASM 二进制文件路径至国内极速 CDN 镜像，规避 NetworkError
+// @ts-ignore
+env.backends.onnx.wasm.wasmPaths = "/wasm/";
+
+// 配置 CPU/WASM 推理的多线程并发以大幅加速 CPU 推理速度
+const numThreads = (typeof navigator !== "undefined" && navigator.hardwareConcurrency) ? Math.min(8, navigator.hardwareConcurrency) : 4;
+// @ts-ignore
+env.backends.onnx.wasm.numThreads = numThreads;
+
 let generator: any = null;
 let currentModelId = "";
 
@@ -28,7 +37,7 @@ function sendProgressMessage(data: any) {
   }
 }
 
-async function initPipeline(modelId: string, preferredDevice: "gpu" | "cpu") {
+async function initPipeline(modelId: string) {
   if (generator && currentModelId === modelId) {
     self.postMessage({ status: "ready" });
     return;
@@ -39,60 +48,39 @@ async function initPipeline(modelId: string, preferredDevice: "gpu" | "cpu") {
 
   self.postMessage({ status: "loading", message: "Initializing neural pathways..." });
 
-  if (preferredDevice === "cpu") {
-    // 强制使用 CPU/WASM + q4
-    try {
-      self.postMessage({ status: "loading", message: "Initializing CPU/WASM [q4]..." });
-      generator = await pipeline("text-generation", modelId, {
-        device: "wasm",
-        dtype: "q4",
-        progress_callback: (data: any) => {
-          sendProgressMessage(data);
-        },
-      });
-      self.postMessage({ status: "ready", device: "wasm" });
-    } catch (wasmError: any) {
-      console.error("WASM initialization failed:", wasmError);
-      self.postMessage({
-        status: "error",
-        error: wasmError.message || "Failed to load model on WASM.",
-      });
-    }
-  } else {
-    // 尝试 WebGPU (q4f16 -> q4)
-    try {
-      self.postMessage({ status: "loading", message: "Connecting WebGPU [q4f16] pipeline..." });
-      generator = await pipeline("text-generation", modelId, {
-        device: "webgpu",
-        dtype: "q4f16",
-        progress_callback: (data: any) => {
-          sendProgressMessage(data);
-        },
-      });
-      self.postMessage({ status: "ready", device: "webgpu" });
-      return;
-    } catch (error: any) {
-      console.warn("WebGPU (q4f16) failed, trying WebGPU (q4) fallback:", error);
-    }
+  // 1. 尝试第一级：WebGPU + q4 (在支持 WebGPU 的显卡上极其稳定且高性能，使用 fp32 累加规避 f16 溢出 bug)
+  try {
+    self.postMessage({ status: "loading", message: "Connecting WebGPU [q4] pipeline..." });
+    generator = await pipeline("text-generation", modelId, {
+      device: "webgpu",
+      dtype: "q4",
+      progress_callback: (data: any) => {
+        sendProgressMessage(data);
+      },
+    });
+    self.postMessage({ status: "ready", device: "webgpu" });
+    return;
+  } catch (error: any) {
+    console.warn("WebGPU (q4) failed, trying WASM/CPU fallback:", error);
+  }
 
-    try {
-      self.postMessage({ status: "loading", message: "Connecting WebGPU [q4] fallback pipeline..." });
-      generator = await pipeline("text-generation", modelId, {
-        device: "webgpu",
-        dtype: "q4",
-        progress_callback: (data: any) => {
-          sendProgressMessage(data);
-        },
-      });
-      self.postMessage({ status: "ready", device: "webgpu" });
-      return;
-    } catch (error: any) {
-      console.error("WebGPU (q4) fallback failed:", error);
-      self.postMessage({
-        status: "error",
-        error: error.message || "Failed to load model on WebGPU. Please switch ENGINE to WASM (CPU) mode.",
-      });
-    }
+  // 2. 尝试第二级：WASM/CPU + q4 (全兼容 CPU 运行)
+  try {
+    self.postMessage({ status: "loading", message: "WebGPU failed. Initializing CPU/WASM [q4]..." });
+    generator = await pipeline("text-generation", modelId, {
+      device: "wasm",
+      dtype: "q4",
+      progress_callback: (data: any) => {
+        sendProgressMessage(data);
+      },
+    });
+    self.postMessage({ status: "ready", device: "wasm" });
+  } catch (wasmError: any) {
+    console.error("WASM initialization failed:", wasmError);
+    self.postMessage({
+      status: "error",
+      error: wasmError.message || "Failed to load model on both WebGPU and WASM.",
+    });
   }
 }
 
@@ -136,7 +124,7 @@ async function generate(messages: any[], maxTokens = 256) {
     });
 
     const startTime = performance.now();
-    const result = await generator(prompt, {
+    const result = await generator(messages, {
       max_new_tokens: maxTokens,
       streamer: streamer,
       do_sample: false, // 禁用随机采样，强制 Greedy Search 避免 ORT WebGPU 采样算子死锁卡死
@@ -161,7 +149,7 @@ async function generate(messages: any[], maxTokens = 256) {
 }
 
 self.addEventListener("message", async (event: MessageEvent) => {
-  const { type, modelId, remoteHost, messages, maxTokens, preferredDevice } = event.data;
+  const { type, modelId, remoteHost, messages, maxTokens } = event.data;
 
   if (type === "start") {
     if (remoteHost) {
@@ -172,7 +160,7 @@ self.addEventListener("message", async (event: MessageEvent) => {
         env.remotePathTemplate = "{model}/resolve/{revision}/";
       }
     }
-    await initPipeline(modelId, preferredDevice || "gpu");
+    await initPipeline(modelId);
   } else if (type === "chat") {
     shouldAbort = false;
     await generate(messages, maxTokens);

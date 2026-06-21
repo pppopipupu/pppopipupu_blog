@@ -16,14 +16,13 @@ export default function LLMPlayground() {
   const [loadedBytes, setLoadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [activeDevice, setActiveDevice] = useState<"webgpu" | "wasm" | "">("");
-  const [selectedDevice, setSelectedDevice] = useState<"gpu" | "cpu">("gpu");
 
   // 聊天状态
   const [chatHistory, setChatHistory] = useState<Message[]>([
     {
       role: "system",
       content:
-        "You are a funny local AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Use many emojis!",
+        "You are a funny AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Do not use any emojis.",
     },
   ]);
   const [inputText, setInputText] = useState("");
@@ -148,7 +147,6 @@ export default function LLMPlayground() {
       type: "start",
       modelId: selectedModel,
       remoteHost: selectedSource,
-      preferredDevice: selectedDevice,
     });
   };
 
@@ -164,7 +162,7 @@ export default function LLMPlayground() {
       {
         role: "system",
         content:
-          "You are a funny local AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Use many emojis!",
+          "You are a funny AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Do not use any emojis.",
       },
     ]);
     setPhysicalItems([]);
@@ -202,7 +200,7 @@ export default function LLMPlayground() {
       {
         role: "system",
         content:
-          "You are a funny local AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Use many emojis!",
+          "You are a funny AI speaking in Chinglish. Rules: 1. Alternate sentence by sentence: 1 sentence in English, 1 sentence in Chinese. 2. Call the user 'boss'. 3. Do not use any emojis.",
       },
     ]);
   };
@@ -369,28 +367,6 @@ export default function LLMPlayground() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <label style={{ color: "#00ffff", fontWeight: "bold", fontSize: "0.9rem" }}>
-                  ⚙️ 选择计算引擎 (ENGINE):
-                </label>
-                <select
-                  value={selectedDevice}
-                  onChange={(e) => setSelectedDevice(e.target.value as "gpu" | "cpu")}
-                  style={{
-                    backgroundColor: "#000000",
-                    color: "#00ff00",
-                    border: "2px inset #00ffff",
-                    padding: "5px",
-                    fontSize: "0.9rem",
-                    fontFamily: "monospace",
-                    cursor: "crosshair"
-                  }}
-                >
-                  <option value="gpu">WebGPU (High Speed - May Hang)</option>
-                  <option value="cpu">WASM (CPU - Safe & Compatible)</option>
-                </select>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <label style={{ color: "#00ffff", fontWeight: "bold", fontSize: "0.9rem" }}>
                   📡 选择数据通道 (GATEWAY):
                 </label>
                 <select
@@ -528,8 +504,27 @@ export default function LLMPlayground() {
               {chatHistory.map((msg, idx) => (
                 <div key={idx} style={{ display: "flex", flexDirection: "column" }}>
                   {msg.role === "system" && (
-                    <div style={{ color: "#888888", fontSize: "0.9rem", fontStyle: "italic" }}>
-                      [SYSTEM]: {msg.content}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" }}>
+                      <span style={{ color: "#888888", fontSize: "0.85rem", fontStyle: "italic" }}>[SYSTEM INSTRUCTION (EDITABLE)]:</span>
+                      <textarea
+                        value={msg.content}
+                        onChange={(e) => {
+                          const newContent = e.target.value;
+                          setChatHistory((prev) => prev.map((m, i) => i === idx ? { ...m, content: newContent } : m));
+                        }}
+                        disabled={isGenerating}
+                        rows={3}
+                        style={{
+                          backgroundColor: "#111111",
+                          color: "#888888",
+                          border: "1px dashed #555555",
+                          padding: "5px",
+                          fontSize: "0.85rem",
+                          fontFamily: "Maple Mono NL, monospace",
+                          resize: "vertical",
+                          outline: "none",
+                        }}
+                      />
                     </div>
                   )}
                   {msg.role === "user" && (

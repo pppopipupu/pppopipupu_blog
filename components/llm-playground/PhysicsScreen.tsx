@@ -78,9 +78,12 @@ export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
       if (webglGl) {
         try {
           webglGl.dispose();
-          const extension = webglGl.getContext().getExtension('WEBGL_lose_context');
-          if (extension) {
-            extension.loseContext();
+          // 安全检测：只有当 getContext 是 function 时才调用（WebGLRenderer 模式下），防止 WebGPURenderer 抛出 getContext is not a function 运行时崩溃
+          if (webglGl.getContext && typeof webglGl.getContext === "function") {
+            const extension = webglGl.getContext().getExtension('WEBGL_lose_context');
+            if (extension) {
+              extension.loseContext();
+            }
           }
         } catch (e) {
           console.warn("WebGL dispose failed:", e);
@@ -119,11 +122,33 @@ export default function PhysicsScreen({ items }: { items: PhysicalItem[] }) {
 
       <Canvas 
         camera={{ position: [0, 0, 10], fov: 60 }}
-        gl={(canvas) => {
+        gl={(defaultProps: any) => {
           if (typeof navigator !== "undefined" && "gpu" in navigator) {
+            const actualCanvas = defaultProps?.canvas;
             // @ts-ignore
-            const renderer = new WebGPURenderer({ canvas, antialias: true, alpha: true });
-            renderer.init().catch((e: any) => console.error("WebGPURenderer init error:", e));
+            const renderer = new WebGPURenderer({
+              canvas: actualCanvas,
+              antialias: defaultProps?.antialias ?? true,
+              alpha: defaultProps?.alpha ?? true
+            });
+
+            // 拦截 render 方法，防范 R3F 在异步 init 完成前执行 render 导致的崩溃
+            let isInitCompleted = false;
+            const originalRender = renderer.render.bind(renderer);
+            renderer.render = (scene: any, camera: any) => {
+              if (isInitCompleted) {
+                originalRender(scene, camera);
+              }
+            };
+
+            renderer.init()
+              .then(() => {
+                isInitCompleted = true;
+              })
+              .catch((e: any) => {
+                console.error("WebGPURenderer init error:", e);
+              });
+
             return renderer;
           }
           return undefined as any; // 降级让 R3F 默认创建 WebGLRenderer
