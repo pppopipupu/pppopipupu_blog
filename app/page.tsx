@@ -7,6 +7,7 @@ import { Center, Text3D, Float } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Giscus from "@giscus/react";
+import DynamicLLMPlayground from "../components/DynamicLLMPlayground";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -55,6 +56,7 @@ function RotatingGradientText() {
 }
 
 export default function Home() {
+  const [isLLMActive, setIsLLMActive] = React.useState(false);
   return (
     <div
       style={{
@@ -331,6 +333,58 @@ export default function Home() {
         </tbody>
       </table>
 
+      {/* AI 本地大模型 对话区 */}
+      <div style={{
+        width: "80%",
+        maxWidth: "800px",
+        border: "5px outset #ff00ff",
+        backgroundColor: "#000080",
+        padding: "20px",
+        marginBottom: "50px",
+        boxShadow: "10px 10px 0px #00ffff"
+      }}>
+        <h2 className="rainbow-text blink-text" style={{
+          fontSize: "2.5rem",
+          textAlign: "center",
+          margin: "0 0 20px 0",
+          textTransform: "uppercase"
+        }}>
+          VERY NB LLM CHAT PLAYGROUND
+        </h2>
+        {isLLMActive ? (
+          <DynamicLLMPlayground />
+        ) : (
+          <div style={{ textAlign: "center", padding: "30px 10px" }}>
+            <button
+              onClick={() => setIsLLMActive(true)}
+              className="spell-btn"
+              style={{
+                border: "5px outset #ff00ff",
+                backgroundColor: "#0a0040",
+                padding: "20px 40px",
+                cursor: "crosshair",
+                textAlign: "center",
+                boxShadow: "6px 6px 0px #00ffff, inset 0 0 30px rgba(255,0,255,0.15)",
+                width: "100%",
+                maxWidth: "500px"
+              }}
+            >
+              <span className="blink-text" style={{
+                fontSize: "1.8rem",
+                fontWeight: "bold",
+                color: "#ffff00",
+                textShadow: "3px 3px 0px #ff0000, -2px -2px 0px #00ffff, 0 0 20px #ff00ff",
+                letterSpacing: "0.15em",
+              }}>
+                ⚡ BOOTUP LOCAL LLM ENGINE ⚡
+              </span>
+            </button>
+            <p style={{ color: "#00ff00", marginTop: "15px", fontSize: "0.9rem" }}>
+              WARNING: Booting the system will prepare local transformers runtime & WebGPU.
+            </p>
+          </div>
+        )}
+      </div>
 
       <div style={{
         width: "80%",
