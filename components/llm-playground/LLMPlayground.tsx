@@ -357,7 +357,7 @@ export default function LLMPlayground() {
                   }}
                 >
                   <option value="onnx-community/gemma-4-E2B-it-ONNX">
-                    Gemma-4 E2B (~500MB) [GPU Enabled] 🧠
+                    Gemma-4 E2B (~1GB) [GPU Enabled]
                   </option>
                   <option value="onnx-community/SmolLM2-135M-Instruct-ONNX">
                     SmolLM2 135M (~130MB) [CPU Friendly] ⚡

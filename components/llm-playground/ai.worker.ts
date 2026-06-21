@@ -48,9 +48,25 @@ async function initPipeline(modelId: string) {
 
   self.postMessage({ status: "loading", message: "Initializing neural pathways..." });
 
-  // 1. 尝试第一级：WebGPU + q4 (在支持 WebGPU 的显卡上极其稳定且高性能，使用 fp32 累加规避 f16 溢出 bug)
+  // 1. 尝试第一级：WebGPU + q4f16 (在支持 shader-f16 扩展的显卡上极速且资源占用低，文件约 1GB)
   try {
-    self.postMessage({ status: "loading", message: "Connecting WebGPU [q4] pipeline..." });
+    self.postMessage({ status: "loading", message: "Connecting WebGPU [q4f16] pipeline..." });
+    generator = await pipeline("text-generation", modelId, {
+      device: "webgpu",
+      dtype: "q4f16",
+      progress_callback: (data: any) => {
+        sendProgressMessage(data);
+      },
+    });
+    self.postMessage({ status: "ready", device: "webgpu" });
+    return;
+  } catch (error: any) {
+    console.warn("WebGPU (q4f16) failed, trying WebGPU (q4) fallback:", error);
+  }
+
+  // 2. 尝试第二级：WebGPU + q4 (针对不支持 shader-f16 扩展但支持 WebGPU 的显卡，文件约 1.6GB)
+  try {
+    self.postMessage({ status: "loading", message: "Connecting WebGPU [q4] fallback pipeline..." });
     generator = await pipeline("text-generation", modelId, {
       device: "webgpu",
       dtype: "q4",
@@ -61,10 +77,10 @@ async function initPipeline(modelId: string) {
     self.postMessage({ status: "ready", device: "webgpu" });
     return;
   } catch (error: any) {
-    console.warn("WebGPU (q4) failed, trying WASM/CPU fallback:", error);
+    console.warn("WebGPU (q4) fallback failed, trying WASM/CPU:", error);
   }
 
-  // 2. 尝试第二级：WASM/CPU + q4 (全兼容 CPU 运行)
+  // 3. 尝试第三级：WASM/CPU + q4 (全兼容 CPU 运行)
   try {
     self.postMessage({ status: "loading", message: "WebGPU failed. Initializing CPU/WASM [q4]..." });
     generator = await pipeline("text-generation", modelId, {
