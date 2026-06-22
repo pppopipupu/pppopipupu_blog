@@ -48,6 +48,3 @@ next-env.d.ts
 
 skills-lock.json
 
-# Wasm caching for local LLM inference
-/public/wasm/
-
