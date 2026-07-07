@@ -742,15 +742,14 @@ export default function MusicPlayer() {
               <span style={{ fontFamily: "monospace", fontSize: "10px", color: "#00ff00" }}>VOL</span>
               <input
                 type="range"
+                className="y2k-range"
                 min="0"
                 max="1"
                 step="0.05"
                 value={volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
                 style={{
-                  width: "40px",
-                  cursor: "pointer",
-                  accentColor: "#00ffff",
+                  width: "50px",
                 }}
               />
             </div>

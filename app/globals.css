@@ -39,3 +39,55 @@ a {
   z-index: 1;
 }
 
+/* Y2K Range Slider Custom Styling */
+input[type="range"].y2k-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].y2k-range:focus {
+  outline: none;
+}
+
+input[type="range"].y2k-range::-webkit-slider-runnable-track {
+  height: 8px;
+  background: #000000;
+  border: 2px solid #00ff00;
+  border-radius: 0px;
+}
+
+input[type="range"].y2k-range::-moz-range-track {
+  height: 8px;
+  background: #000000;
+  border: 2px solid #00ff00;
+  border-radius: 0px;
+}
+
+input[type="range"].y2k-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 10px;
+  background: #00ffff;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #005555;
+  border-bottom: 2px solid #005555;
+  margin-top: -6px;
+  border-radius: 0px;
+}
+
+input[type="range"].y2k-range::-moz-range-thumb {
+  height: 16px;
+  width: 10px;
+  background: #00ffff;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #005555;
+  border-bottom: 2px solid #005555;
+  border-radius: 0px;
+}
+
+

@@ -405,8 +405,8 @@ export default function GlassOverlay() {
       <div
         style={{
           position: "fixed",
-          bottom: "30px",
-          right: "30px",
+          bottom: "16px",
+          left: "16px",
           zIndex: 10000,
           background: "linear-gradient(135deg, rgba(255, 0, 255, 0.4), rgba(0, 255, 255, 0.4))",
           border: "2px solid #ffffff",

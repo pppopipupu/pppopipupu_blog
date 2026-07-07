@@ -1,0 +1,56 @@
+main {
+  --color-border-default: #3d3d3f;
+  --color-border-muted: #2a2a2c;
+  --color-canvas-default: #272729;
+  --color-canvas-overlay: #1d1d1f;
+  --color-fg-default: #ffffff;
+  --color-fg-muted: #cccccc;
+  --color-accent-fg: #2997ff;
+  --color-accent-emphasis: #2997ff;
+  --color-btn-text: #ffffff;
+  --color-btn-bg: #0066cc;
+  --color-btn-border: #0066cc;
+  --color-btn-hover-bg: #2997ff;
+  --color-btn-hover-border: #2997ff;
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-bg: #0066cc;
+  --color-btn-primary-border: #0066cc;
+  --color-btn-primary-hover-bg: #2997ff;
+}
+
+.gsc-comment-box {
+  border: 1px solid #3d3d3f !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
+}
+
+.gsc-comment-box-textarea {
+  background-color: #1d1d1f !important;
+  color: #ffffff !important;
+}
+
+.gsc-comment {
+  border: none !important;
+  border-bottom: 1px solid #3d3d3f !important;
+  margin-bottom: 16px !important;
+}
+
+.gsc-comment-header {
+  background-color: transparent !important;
+  border: none !important;
+  padding-left: 0 !important;
+}
+
+.gsc-comment-content {
+  padding-left: 0 !important;
+}
+
+.gsc-timeline {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
+}
+
+.gsc-reply {
+  border-left: 2px solid #3d3d3f !important;
+}

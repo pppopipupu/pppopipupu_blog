@@ -8,6 +8,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Giscus from "@giscus/react";
 import DynamicLLMPlayground from "../components/DynamicLLMPlayground";
+import MainFool from "../components/MainFool";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -57,6 +58,19 @@ function RotatingGradientText() {
 
 export default function Home() {
   const [isLLMActive, setIsLLMActive] = React.useState(false);
+  const [isAprilFools, setIsAprilFools] = React.useState(false);
+
+  React.useEffect(() => {
+    const today = new Date();
+    if (today.getMonth() === 3 && today.getDate() === 1) {
+      setIsAprilFools(true);
+    }
+  }, []);
+
+  if (isAprilFools) {
+    return <MainFool />;
+  }
+
   return (
     <div
       style={{

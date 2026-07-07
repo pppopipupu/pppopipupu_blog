@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.104.0",
     "@types/d3-delaunay": "^6.0.4",
     "@types/three": "^0.184.0",
+    "ammojs-typed": "^1.0.6",
     "canvas-confetti": "^1.9.4",
     "d3-delaunay": "^6.0.4",
     "next": "16.2.4",
