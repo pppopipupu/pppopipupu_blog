@@ -9,6 +9,7 @@ import * as THREE from "three";
 import Giscus from "@giscus/react";
 import DynamicLLMPlayground from "../components/DynamicLLMPlayground";
 import MainFool from "../components/MainFool";
+import DynamicCozyRoom from "../components/cozy-room/DynamicCozyRoom";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -433,6 +434,10 @@ export default function Home() {
           loading="lazy"
         />
       </div>
+
+      {/* 3D 低多边形卧室(懒加载,滚动到视口附近才加载) */}
+      <DynamicCozyRoom />
+
       {/*/!* 警告区与空白占位区 *!/*/}
       {/*<div style={{*/}
       {/*  marginTop: "100px",*/}

@@ -12,13 +12,14 @@ try {
       JSON.stringify(mp3Files, null, 2)
     );
   }
-} catch (e) {}
+} catch {}
 
 const isGithubPages = process.env.GITHUB_PAGES === "true";
 const basePath = isGithubPages ? "/pppopipupu_blog" : "";
 
 const nextConfig: NextConfig = {
   output: "export",
+  reactStrictMode: false,
   images: { unoptimized: true },
   basePath: basePath,
   assetPrefix: basePath,

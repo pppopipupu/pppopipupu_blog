@@ -26,3 +26,6 @@ export type SpellType = "fireball" | "lightning" | "disintegrate" | "prismatic-w
 
 For rules regarding specific interactive spell elements, 3D terrains, shallow water simulations, and entity physics, consult:
 - [components/spell-lab/AGENTS.md](spell-lab/AGENTS.md)
+
+For the lazy-loaded low-poly Cozy Room 3D bedroom scene (disposal rules, angry ball explosion, lamp toggle, frameloop gating):
+- [components/cozy-room/AGENTS.md](cozy-room/AGENTS.md)

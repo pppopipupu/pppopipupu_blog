@@ -52,3 +52,6 @@ To maintain high development efficiency, the project specifications are modulari
 
 4. For modifications to the Music Player, playlist logic, or R3F border particle physics:
    - Music player architecture, glitched physical simulation, and scan workflow: Read [components/music-player/AGENTS.md](file:///c:/Users/pppop/Desktop/pppopipupu_blog/components/music-player/AGENTS.md)
+
+5. For modifications to the lazy-loaded low-poly Cozy Room 3D bedroom scene:
+   - Scene orchestration, furniture interactions (angry ball explosion, lamp toggle), disposal and performance rules: Read [components/cozy-room/AGENTS.md](file:///c:/Users/pppop/Desktop/pppopipupu_blog/components/cozy-room/AGENTS.md)
