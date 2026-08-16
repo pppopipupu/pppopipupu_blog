@@ -230,6 +230,31 @@ export default function Home() {
         </tbody>
       </table>
 
+      {/* 静态 Y2K SECRET 按钮（无动效，珠光金属质感） */}
+      <div style={{ marginTop: "20px", marginBottom: "15px", textAlign: "center" }}>
+        <Link href="/secret" style={{ textDecoration: "none" }}>
+          <div
+            style={{
+              display: "inline-block",
+              background: "linear-gradient(135deg, #ffffff 0%, #ff80df 25%, #00ffff 50%, #ffff80 75%, #ffffff 100%)",
+              border: "4px outset #ffffff",
+              padding: "10px 28px",
+              cursor: "crosshair",
+              boxShadow: "4px 4px 0px #ff00ff, 8px 8px 0px #00ffff",
+              color: "#000000",
+              fontFamily: "'Courier New', Courier, monospace",
+              fontSize: "1.2rem",
+              fontWeight: "900",
+              letterSpacing: "0.15em",
+              textShadow: "1px 1px 0px #ffffff"
+            }}
+          >
+            ✧ SECRET ✧
+          </div>
+        </Link>
+      </div>
+
+
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes spell-twitch {
