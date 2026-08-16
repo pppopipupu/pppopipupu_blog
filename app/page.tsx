@@ -230,67 +230,51 @@ export default function Home() {
 
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+          @keyframes spell-twitch {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-15deg); }
+            100% { transform: rotate(0deg); }
           }
-          .spell-gradient-text {
-            background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0088ff, #ff00ff, #ff0000);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-          }
-          .spell-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
-          }
-          .spell-btn {
-            transition: transform 0.2s, box-shadow 0.2s;
+          .spell-twitch {
+            display: inline-block;
+            animation: spell-twitch 0.2s ease-in-out infinite;
+            transform-origin: center center;
           }
         `
       }} />
 
+      <h2 className="blink-text" style={{ color: "#ffff00", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff0000" }}>
+        🔥🔥🔥 安格瑞法术实验室 🔥🔥🔥
+      </h2>
       <div style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        border: "5px outset #ff00ff",
+        backgroundColor: "#000080",
         width: "80%",
         maxWidth: "800px",
-        marginTop: "40px",
+        textAlign: "center",
+        padding: "15px",
         marginBottom: "30px",
+        boxShadow: "6px 6px 0px #00ffff"
       }}>
         <Link href="/spell-lab" style={{ textDecoration: "none" }}>
-          <div className="spell-btn" style={{
-            border: "5px outset #ff00ff",
-            backgroundColor: "#0a0040",
-            padding: "25px 60px",
-            cursor: "crosshair",
-            textAlign: "center",
-            boxShadow: "6px 6px 0px #00ffff, inset 0 0 40px rgba(255,0,255,0.15)",
+          <div style={{
+            border: "3px inset #00ffff",
+            backgroundColor: "#000044",
+            padding: "20px",
+            cursor: "crosshair"
           }}>
-            <span style={{
-              fontSize: "2.8rem",
-              fontWeight: "bold",
-              color: "#ffff00",
-              textShadow: "3px 3px 0px #ff0000, -2px -2px 0px #00ffff, 0 0 20px #ff00ff",
-              letterSpacing: "0.15em",
-            }}>
-              安格瑞法术实验室
-            </span>
+            <div className="spell-twitch">
+              <p className="rainbow-text" style={{ fontSize: "2rem", margin: "0 0 10px 0", fontWeight: "bold" }}>
+                ▶ 安格瑞法术实验室 ◀
+              </p>
+              <p style={{ color: "#ffff00", margin: 0, fontSize: "1rem" }}>
+                😡 来释放火球术吧！ 😡
+              </p>
+            </div>
           </div>
         </Link>
-        <p className="spell-gradient-text" style={{
-          fontSize: "1.6rem",
-          fontWeight: "bold",
-          marginTop: "12px",
-          letterSpacing: "0.1em",
-        }}>
-          来释放火球术吧！
-        </p>
       </div>
 
       <h2 className="blink-text" style={{ color: "#00ffff", fontSize: "2rem", marginTop: "40px", textShadow: "2px 2px #ff00ff" }}>
@@ -372,7 +356,6 @@ export default function Home() {
           <div style={{ textAlign: "center", padding: "30px 10px" }}>
             <button
               onClick={() => setIsLLMActive(true)}
-              className="spell-btn"
               style={{
                 border: "5px outset #ff00ff",
                 backgroundColor: "#0a0040",
