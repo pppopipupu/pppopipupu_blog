@@ -10,6 +10,7 @@ import Giscus from "@giscus/react";
 import DynamicLLMPlayground from "../components/DynamicLLMPlayground";
 import MainFool from "../components/MainFool";
 import DynamicCozyRoom from "../components/cozy-room/DynamicCozyRoom";
+import DynamicThunderExperience from "../components/thunder/DynamicThunderExperience";
 
 function RotatingGradientText() {
   const meshRef = useRef<THREE.Group>(null);
@@ -88,6 +89,7 @@ export default function Home() {
         overflow: "hidden"
       }}
     >
+      <DynamicThunderExperience />
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes blink {
