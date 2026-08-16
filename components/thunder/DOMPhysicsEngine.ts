@@ -128,6 +128,7 @@ export class DOMPhysicsEngine {
       "h2.blink-text",
       "h2.rainbow-text",
       "h2",
+      "table",
       "table.article-table",
       "table.article-table tr",
       "table.article-table th",
