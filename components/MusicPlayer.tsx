@@ -160,11 +160,19 @@ export default function MusicPlayer() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInitialMountRef = useRef(true);
+  const initialSeekRef = useRef(0);
+  const lastSavedTimeRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem("musicPlayerEnabled") === "true";
     setActive(stored);
+
+    const savedTrackName = localStorage.getItem("musicPlayerTrackName");
+    const savedTrackIndex = localStorage.getItem("musicPlayerTrackIndex");
+    const savedTimeStr = localStorage.getItem("musicPlayerCurrentTime");
+    const savedTime = savedTimeStr ? parseFloat(savedTimeStr) : 0;
 
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
     fetch(`${basePath}/music/list.json`)
@@ -175,6 +183,32 @@ export default function MusicPlayer() {
             name: filename,
             url: `${basePath}/music/${encodeURIComponent(filename)}`
           }));
+
+          let initialIndex = 0;
+          if (savedTrackName) {
+            const foundIdx = mapped.findIndex((t) => t.name === savedTrackName);
+            if (foundIdx !== -1) {
+              initialIndex = foundIdx;
+            } else if (savedTrackIndex !== null && !isNaN(parseInt(savedTrackIndex, 10))) {
+              const parsedIdx = parseInt(savedTrackIndex, 10);
+              if (parsedIdx >= 0 && parsedIdx < mapped.length) {
+                initialIndex = parsedIdx;
+              }
+            }
+          } else if (savedTrackIndex !== null && !isNaN(parseInt(savedTrackIndex, 10))) {
+            const parsedIdx = parseInt(savedTrackIndex, 10);
+            if (parsedIdx >= 0 && parsedIdx < mapped.length) {
+              initialIndex = parsedIdx;
+            }
+          }
+
+          if (savedTime > 0 && !isNaN(savedTime)) {
+            initialSeekRef.current = savedTime;
+            setCurrentTime(savedTime);
+            lastSavedTimeRef.current = savedTime;
+          }
+
+          setCurrentTrackIndex(initialIndex);
           setTracks(mapped);
           if (stored) {
             setIsPlaying(true);
@@ -182,6 +216,18 @@ export default function MusicPlayer() {
         }
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (audioRef.current) {
+        localStorage.setItem("musicPlayerCurrentTime", audioRef.current.currentTime.toString());
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 
   useEffect(() => {
@@ -194,11 +240,24 @@ export default function MusicPlayer() {
     const audio = audioRef.current;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      const t = audio.currentTime;
+      setCurrentTime(t);
+      if (Math.abs(t - lastSavedTimeRef.current) >= 1) {
+        lastSavedTimeRef.current = t;
+        localStorage.setItem("musicPlayerCurrentTime", t.toString());
+      }
     };
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration || 0);
+      if (initialSeekRef.current > 0) {
+        if (audio.duration && initialSeekRef.current < audio.duration) {
+          audio.currentTime = initialSeekRef.current;
+        } else if (!audio.duration) {
+          audio.currentTime = initialSeekRef.current;
+        }
+        initialSeekRef.current = 0;
+      }
     };
 
     const handleAudioEnded = () => {
@@ -216,6 +275,9 @@ export default function MusicPlayer() {
     }
 
     return () => {
+      if (audioRef.current) {
+        localStorage.setItem("musicPlayerCurrentTime", audioRef.current.currentTime.toString());
+      }
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleAudioEnded);
@@ -231,12 +293,24 @@ export default function MusicPlayer() {
 
   useEffect(() => {
     if (tracks.length === 0 || !audioRef.current) return;
-    const audio = audioRef.current;
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
 
+    const audio = audioRef.current;
     const wasPlaying = isPlaying;
     audio.pause();
     audio.src = tracks[currentTrackIndex].url;
     audio.load();
+
+    localStorage.setItem("musicPlayerTrackIndex", currentTrackIndex.toString());
+    if (tracks[currentTrackIndex]) {
+      localStorage.setItem("musicPlayerTrackName", tracks[currentTrackIndex].name);
+    }
+    localStorage.setItem("musicPlayerCurrentTime", "0");
+    lastSavedTimeRef.current = 0;
+    setCurrentTime(0);
 
     if (wasPlaying) {
       audio.play().then(() => {
@@ -345,6 +419,9 @@ export default function MusicPlayer() {
 
   const handlePlayPause = () => {
     if (tracks.length === 0) return;
+    if (isPlaying && audioRef.current) {
+      localStorage.setItem("musicPlayerCurrentTime", audioRef.current.currentTime.toString());
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -365,6 +442,9 @@ export default function MusicPlayer() {
       audio.pause();
       audio.currentTime = 0;
     }
+    localStorage.setItem("musicPlayerCurrentTime", "0");
+    lastSavedTimeRef.current = 0;
+    setCurrentTime(0);
     setIsPlaying(false);
   };
 
@@ -379,6 +459,7 @@ export default function MusicPlayer() {
     localStorage.setItem("musicPlayerEnabled", "false");
     const audio = audioRef.current;
     if (audio) {
+      localStorage.setItem("musicPlayerCurrentTime", audio.currentTime.toString());
       audio.pause();
     }
     setIsPlaying(false);

@@ -20,7 +20,7 @@ The user interface adopts retro pixel styles reminiscent of classic Winamp:
 - Dual Borders: Chunky pixelated margins colored with alternating dark and light frames to create an authentic metallic texture.
 - Acid Gradient & Neon Colors: Standard palettes utilize neon green (#00ff00) and hot pink (#ff00ff). The CD activation toggle uses a conic-gradient holographic overlay.
 - LCD Scrolling Screen: Song titles scroll horizontally via a custom CSS marquee layout using fixed-width LCD typography (Courier New).
-- State Synchronization: Current status (enabled or hidden) is synchronized in localStorage using the key "musicPlayerEnabled" to ensure persistent play status across page navigations.
+- State Synchronization: Current status (enabled or hidden), track information (musicPlayerTrackName, musicPlayerTrackIndex), and playback progress (musicPlayerCurrentTime) are synchronized in localStorage to ensure seamless resumption of audio playback across page navigations and refreshes.
 
 ### 3. 3D Particle System and Event Pass-Through
 To enhance visual intensity, a React Three Fiber driven `<Canvas>` overlay is integrated on top of the player containing two types of custom particles:

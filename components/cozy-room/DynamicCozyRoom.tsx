@@ -24,10 +24,50 @@ const CozyRoomScene = dynamic(() => import("./CozyRoomScene"), {
   ),
 });
 
+const LineArtScene = dynamic(() => import("./LineArtScene"), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100%",
+        height: "700px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#ffffff",
+        color: "#000000",
+        fontFamily: "monospace",
+        fontSize: "1.2rem",
+      }}
+    >
+      <span className="blink-text">LOADING 3D LINE ART...</span>
+    </div>
+  ),
+});
+
+type SceneId = "cozy" | "line";
+
+const BTN_BASE: React.CSSProperties = {
+  fontFamily: "monospace",
+  fontSize: "1rem",
+  padding: "8px 18px",
+  cursor: "pointer",
+  border: "3px outset #ff00ff",
+  color: "#00ff00",
+  backgroundColor: "#000080",
+};
+
+const BTN_ACTIVE: React.CSSProperties = {
+  ...BTN_BASE,
+  color: "#ffffff",
+  backgroundColor: "#ff00ff",
+};
+
 export default function DynamicCozyRoom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [inView, setInView] = useState(false);
+  const [scene, setScene] = useState<SceneId>("cozy");
 
   useEffect(() => {
     const el = containerRef.current;
@@ -76,14 +116,33 @@ export default function DynamicCozyRoom() {
           textTransform: "uppercase",
         }}
       >
-        ★★★ 3D COZY ROOM ★★★
+        ★★★ 3D SCENE ROOM ★★★
       </h2>
       <p style={{ color: "#00ff00", textAlign: "center", fontSize: "0.9rem", margin: "0 0 12px 0", fontFamily: "monospace" }}>
-        温馨低多边形卧室
+        温馨低多边形卧室 / 黑白线条中世纪村庄
           （deepsleep v4 flash ga制造，写了一堆深度冲突，但是不重要，消耗0刀乐）
       </p>
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          justifyContent: "center",
+          margin: "0 0 14px 0",
+        }}
+      >
+        <button style={scene === "cozy" ? BTN_ACTIVE : BTN_BASE} onClick={() => setScene("cozy")}>
+          温馨卧室
+        </button>
+        <button style={scene === "line" ? BTN_ACTIVE : BTN_BASE} onClick={() => setScene("line")}>
+          线条村庄
+        </button>
+      </div>
       {mounted ? (
-        <CozyRoomScene frameloop={inView ? "always" : "never"} />
+        scene === "cozy" ? (
+          <CozyRoomScene frameloop={inView ? "always" : "never"} />
+        ) : (
+          <LineArtScene frameloop={inView ? "always" : "never"} />
+        )
       ) : (
         <div
           style={{
@@ -100,7 +159,7 @@ export default function DynamicCozyRoom() {
             gap: "12px",
           }}
         >
-          <span className="blink-text">⚠ SCROLL DOWN TO LOAD 3D COZY ROOM ⚠</span>
+          <span className="blink-text">⚠ SCROLL DOWN TO LOAD 3D SCENE ⚠</span>
           <span style={{ color: "#00ffff", fontSize: "0.85rem" }}>↓ ↓ ↓ ↓ ↓ ↓</span>
         </div>
       )}

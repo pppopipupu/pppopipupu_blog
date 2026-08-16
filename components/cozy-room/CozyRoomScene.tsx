@@ -11,20 +11,7 @@ import DustParticles from "./Particles";
 import { PhysicalToys, RoomColliders } from "./PhysicalToys";
 import SceneErrorBoundary from "./SceneErrorBoundary";
 import { preloadSounds } from "./Sounds";
-
-function checkWebGL(): boolean {
-  try {
-    const canvas = document.createElement("canvas");
-    const gl = canvas.getContext("webgl2");
-    if (!gl) return false;
-    const ok = gl.getContextAttributes() !== null;
-    const lose = gl.getExtension("WEBGL_lose_context") as { loseContext: () => void } | null;
-    if (lose) lose.loseContext();
-    return ok;
-  } catch {
-    return false;
-  }
-}
+import { checkWebGL } from "./webgl";
 
 const MAX_REBUILDS = 3;
 
