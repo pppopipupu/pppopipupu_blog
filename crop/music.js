@@ -1,0 +1,1 @@
+(()=>{const a=new Audio('https://cdn.jsdelivr.net/gh/pppopipupu/pppopipupu_blog/public/music/%E4%B8%87%E7%89%A9%E7%90%86%E8%AE%BA%E7%89%9B%E9%80%BC.mp3');a.loop=!0;a.play().catch(()=>onpointerdown=()=>a.play())})();
