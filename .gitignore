@@ -46,5 +46,8 @@ next-env.d.ts
 # Agents
 .agents/
 
+# AI experiment scratch space (WebGPU/three.js playgrounds)
+/crop/
+
 skills-lock.json
 

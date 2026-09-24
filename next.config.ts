@@ -27,6 +27,14 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
+  // TypeScript 7 is a native compiler with no JS compiler API, so Next cannot import it for its
+  // built-in type check. The CLI checker runs the project-local `tsc` instead. It is the default
+  // in Next 16.3, pinned explicitly here because `npm run build` depends on it: with the built-in
+  // checker there is no way to type check a TypeScript 7 project at all. Upstream still marks the
+  // key as experimental - keep it until it graduates.
+  experimental: {
+    useTypeScriptCli: true,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.alias = {

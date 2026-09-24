@@ -15,13 +15,13 @@ export default function DynamicGlassOverlay() {
     const isAprilFools = today.getMonth() === 3 && today.getDate() === 1;
     const path = window.location.pathname;
     
-    if (path.includes("/main_fool") || (path === "/" && isAprilFools)) {
+    if (path.includes("/main_fool") || path.includes("/articles/second") || (path === "/" && isAprilFools)) {
       setShouldHide(true);
     }
   }, []);
 
-  // 如果访问的是 /main_fool 页面，或者今天是愚人节且在首页，则不渲染碎玻璃特效与配置选项框
-  if (shouldHide || pathname === "/main_fool") {
+  // 如果访问的是 /main_fool 页面、纯黑白文章页，或者今天是愚人节且在首页，则不渲染碎玻璃特效与配置选项框
+  if (shouldHide || pathname === "/main_fool" || pathname.includes("/articles/second")) {
     return null;
   }
   

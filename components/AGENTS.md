@@ -29,3 +29,6 @@ For rules regarding specific interactive spell elements, 3D terrains, shallow wa
 
 For the lazy-loaded low-poly Cozy Room 3D bedroom scene (disposal rules, angry ball explosion, lamp toggle, frameloop gating):
 - [components/cozy-room/AGENTS.md](cozy-room/AGENTS.md)
+
+For the WebGPU (vgpu) universe background canvas behind the pinned monochrome article (device lifetime, scroll burst input, WGSL/uniform contract, headless pixel verification):
+- [components/space/AGENTS.md](space/AGENTS.md)

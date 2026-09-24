@@ -151,6 +151,25 @@ export default function Home() {
           .article-table td, .article-table th {
             border: 2px inset #FE0000;
           }
+          /* Pinned article row: deep black and white, echoing the monochrome article it links to.
+             The other rows keep the magenta/blood-red .article-table look. */
+          .article-row-mono td {
+            background-color: #000000;
+            background-image: radial-gradient(circle at 50% 45%, #1c1c1c, #000000 72%);
+            color: #ffffff;
+            border: 2px inset #ffffff;
+          }
+          .article-row-mono a:link,
+          .article-row-mono a:visited {
+            color: #ffffff;
+            text-decoration: underline;
+          }
+          .article-row-mono a:hover {
+            color: #000000;
+            background-color: #ffffff;
+            text-decoration: none;
+            cursor: crosshair;
+          }
           @keyframes bounceX {
             0% { left: -30px; }
             100% { left: 30px; }
@@ -346,6 +365,11 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
+          <tr className="article-row-mono">
+            <td><span className="bouncing-text" style={{ animationDuration: '0.44s, 0.36s', animationDelay: '-0.2s, -0.5s' }}>2026-09-24</span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.41s, 0.57s', animationDelay: '-0.6s, -0.2s' }}><Link href="/articles/second"><b>[置顶]</b> （标题待写）</Link></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.53s, 0.44s', animationDelay: '-0.3s, -0.8s' }}>纯黑白极简 · 宇宙 WebGPU 背景 · 滚动有动效</span></td>
+          </tr>
           <tr>
             <td><span className="bouncing-text" style={{ animationDuration: '0.38s, 0.47s', animationDelay: '-0.7s, -0.3s' }}>2026-04-20</span></td>
             <td><span className="bouncing-text" style={{ animationDuration: '0.62s, 0.41s', animationDelay: '-0.2s, -0.5s' }}><Link href="/articles/first">第一篇文章！<b>Who am I</b></Link></span></td>
