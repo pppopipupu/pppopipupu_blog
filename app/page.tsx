@@ -367,8 +367,8 @@ export default function Home() {
         <tbody>
           <tr className="article-row-mono">
             <td><span className="bouncing-text" style={{ animationDuration: '0.44s, 0.36s', animationDelay: '-0.2s, -0.5s' }}>2026-09-24</span></td>
-            <td><span className="bouncing-text" style={{ animationDuration: '0.41s, 0.57s', animationDelay: '-0.6s, -0.2s' }}><Link href="/articles/second"><b>[置顶]</b> （标题待写）</Link></span></td>
-            <td><span className="bouncing-text" style={{ animationDuration: '0.53s, 0.44s', animationDelay: '-0.3s, -0.8s' }}>纯黑白极简 · 宇宙 WebGPU 背景 · 滚动有动效</span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.41s, 0.57s', animationDelay: '-0.6s, -0.2s' }}><Link href="/articles/second"><b>[置顶]</b> root手机的混沌之路</Link></span></td>
+            <td><span className="bouncing-text" style={{ animationDuration: '0.53s, 0.44s', animationDelay: '-0.3s, -0.8s' }}>此博客的第一篇正经文章，燃烧我100吨精血凝聚而成，阅读指数：超越之前的所有文章</span></td>
           </tr>
           <tr>
             <td><span className="bouncing-text" style={{ animationDuration: '0.38s, 0.47s', animationDelay: '-0.7s, -0.3s' }}>2026-04-20</span></td>
