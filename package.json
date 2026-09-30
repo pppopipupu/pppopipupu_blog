@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "typecheck": "tsc --noEmit",
-    "build": "next build",
+    "dev:solid": "vite build --watch -c incremental/vite.config.mts",
+    "typecheck": "tsc --noEmit && tsc -p incremental/tsconfig.json --noEmit",
+    "build": "vite build -c incremental/vite.config.mts && next build",
+    "build:solid": "vite build -c incremental/vite.config.mts",
     "build:black-hole": "bun crop/build-black-hole.mjs",
     "build:quasi-star": "bun crop/build-quasi-star.mjs",
     "build:andromeda": "bun crop/build-andromeda.mjs",
@@ -27,6 +29,7 @@
     "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "solid-js": "^1.9.15",
     "three": "^0.184.0",
     "three-stdlib": "^2.36.1",
     "vgpu": "^0.5.0"
@@ -40,6 +43,8 @@
     "lygia": "^1.4.1",
     "tailwindcss": "^4",
     "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vite-plugin-solid": "^2.11.14",
     "wesl": "^0.7.31"
   }
 }

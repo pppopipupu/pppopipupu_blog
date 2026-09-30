@@ -1,34 +1,12 @@
-# Component Architecture & Style Guidelines: React Components
+# Component Rules: React & R3F
 
-This document outlines structural rules, type definitions, and rendering rules for all React and React Three Fiber (R3F) components in components/.
-
-## Important Shared Types
-
-### SpellType
-Defines the castable spells in the laboratory (defined in components/SpellLabScene.tsx or DynamicSpellLabScene.tsx):
-```typescript
-export type SpellType = "fireball" | "lightning" | "disintegrate" | "prismatic-wall" | "animate-dead";
-```
-
-## Architectural Notes
-
-### 1. SSR Disabled for 3D Elements
-- React Three Fiber and Three.js rely heavily on client-side window APIs.
-- Any component imports involving R3F or Three.js must disable Server-Side Rendering (SSR).
-- Dynamic import wrappers (like DynamicSpellLabScene.tsx) are configured with `{ ssr: false }` to avoid hydration errors.
-
-### 2. State Management
-- The main scene component (SpellLabScene.tsx) owns and acts as the single source of truth for the R3F Canvas state.
-- It tracks active entities (dummies, zombies, fireballs, craters) and coordinates state updates.
-- Interactive states (like selection or stats overlays) are communicated via prop callbacks.
-
-## Component Subdirectories
-
-For rules regarding specific interactive spell elements, 3D terrains, shallow water simulations, and entity physics, consult:
-- [components/spell-lab/AGENTS.md](spell-lab/AGENTS.md)
-
-For the lazy-loaded low-poly Cozy Room 3D bedroom scene (disposal rules, angry ball explosion, lamp toggle, frameloop gating):
-- [components/cozy-room/AGENTS.md](cozy-room/AGENTS.md)
-
-For the WebGPU (vgpu) universe background canvas behind the pinned monochrome article (device lifetime, scroll burst input, WGSL/uniform contract, headless pixel verification):
-- [components/space/AGENTS.md](space/AGENTS.md)
+- SSR: anything importing React Three Fiber or Three.js is client-only. Import it through the
+  existing `next/dynamic` wrapper with `{ ssr: false }`; never let a server render evaluate
+  Three/R3F code.
+- `useFrame` callbacks may only mutate refs. Never call setState per frame and never allocate
+  Vector3, material or geometry objects inside the frame loop - allocation belongs in `useMemo` or
+  event handlers.
+- Per-interaction state that drives animation (toggles, timers, animation phases) lives in refs, so
+  interactions never trigger re-renders.
+- THREE resources created manually (geometry, material, texture) must be disposed in effect
+  cleanup; JSX-declared ones are auto-disposed by R3F.
