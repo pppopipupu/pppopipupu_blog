@@ -32,6 +32,7 @@
     "solid-js": "^1.9.15",
     "three": "^0.184.0",
     "three-stdlib": "^2.36.1",
+    "tone": "^15.1.22",
     "vgpu": "^0.5.0"
   },
   "devDependencies": {

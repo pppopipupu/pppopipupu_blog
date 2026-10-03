@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -48,8 +48,9 @@ next-env.d.ts
 
 # Agents
 .agents/
+.agent/
 
-# AI experiment scratch space (WebGPU/three.js playgrounds)
+# AI experiment scratch space (WebGPU/three.js playgrounds, browser probes, score/handoff checks)
 /crop/
 
 skills-lock.json

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Center, Text3D, Float } from "@react-three/drei";
+import { Center, Text3D } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Giscus from "@giscus/react";
@@ -11,56 +11,105 @@ import DynamicLLMPlayground from "../components/DynamicLLMPlayground";
 import MainFool from "../components/MainFool";
 import DynamicCozyRoom from "../components/cozy-room/DynamicCozyRoom";
 import DynamicThunderExperience from "../components/thunder/DynamicThunderExperience";
+import DynamicIntroPrelude from "@/components/intro/DynamicIntroPrelude";
+import type { IntroTarget } from "@/components/intro/DynamicIntroPrelude";
+import { INTRO_OVERLAY_Z_INDEX } from "@/components/intro/introConfig";
+import {
+  HERO_CAMERA,
+  HERO_EMISSIVE_BASE,
+  HERO_MATERIAL,
+  HERO_TEXT,
+  TEXT3D_FONT_URL,
+  TEXT3D_FRONT_OFFSET,
+  TEXT3D_GEOMETRY,
+  visibleWorldHeight,
+} from "@/lib/heroText";
 
-function RotatingGradientText() {
-  const meshRef = useRef<THREE.Group>(null);
+// Landing-page hero word, built from lib/heroText.ts so the intro prelude can morph its letters
+// onto this exact word and cross-fade without a pop.
+//
+// `spin` gates the animation and anchors its clock at zero: until the intro hands off (or when the
+// intro is disabled) the word sits at the identity pose the intro morphs onto.
+function RotatingGradientText({
+  spin,
+  onMeasure,
+}: {
+  spin: boolean;
+  onMeasure?: (metrics: { width: number; height: number }) => void;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const driftRef = useRef<THREE.Group>(null);
+  const textRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  const spinStart = useRef<number | null>(null);
+
+  React.useLayoutEffect(() => {
+    if (!onMeasure) return;
+    const geometry = textRef.current?.geometry;
+    if (!geometry) return;
+    geometry.computeBoundingBox();
+    const box = geometry.boundingBox;
+    if (box) onMeasure({ width: box.max.x - box.min.x, height: box.max.y - box.min.y });
+  }, [onMeasure]);
 
   useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime);
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 1.5;
+    if (spin) {
+      if (spinStart.current === null) spinStart.current = state.clock.elapsedTime;
+    } else {
+      spinStart.current = null;
+    }
+    const t = spinStart.current === null ? 0 : state.clock.elapsedTime - spinStart.current;
+
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(t);
+      groupRef.current.position.y = Math.sin(t * 2) * 1.5;
+    }
+    if (driftRef.current) {
+      // Hand-rolled instead of drei's <Float>: the same drift amplitudes, but phase-anchored at
+      // t = 0 (Float starts from a random phase) so the intro handoff lands on the identity pose.
+      driftRef.current.rotation.x = Math.sin(t / 2) / 16;
+      driftRef.current.rotation.y = Math.sin(t / 2) / 16;
+      driftRef.current.rotation.z = Math.sin(t / 2) / 40;
+      driftRef.current.position.y = Math.sin(t / 2) / 5;
     }
     if (materialRef.current) {
-      materialRef.current.emissiveIntensity = 1.5 + Math.sin(state.clock.elapsedTime * 10);
+      materialRef.current.emissiveIntensity = HERO_EMISSIVE_BASE + Math.sin(t * 10);
     }
   });
 
   return (
-    <group ref={meshRef}>
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={2}>
+    <group ref={groupRef}>
+      <group ref={driftRef}>
         <Center>
-          <Text3D
-            font="https://cdn.jsdelivr.net/npm/three/examples/fonts/helvetiker_regular.typeface.json"
-            size={2}
-            height={0.5}
-            curveSegments={12}
-            bevelEnabled
-            bevelThickness={0.1}
-            bevelSize={0.05}
-            bevelOffset={0}
-            bevelSegments={5}
-          >
-            pppopipupu
+          <Text3D ref={textRef} font={TEXT3D_FONT_URL} {...TEXT3D_GEOMETRY}>
+            {HERO_TEXT}
             <meshStandardMaterial
               ref={materialRef}
-              color="#ffffff"
-              roughness={0.2}
-              metalness={0.8}
-              emissive="#ffd700"
-              emissiveIntensity={1}
+              {...HERO_MATERIAL}
+              emissiveIntensity={HERO_EMISSIVE_BASE}
               toneMapped={false}
             />
           </Text3D>
         </Center>
-      </Float>
+      </group>
     </group>
   );
 }
 
+// Landing-page intro preference: "on" (default) plays the boot sequence on every load, "off" skips
+// it. Stored locally and owned by the top-left drawer next to the replay button.
+const INTRO_SETTING_KEY = "pppopipupu.intro-enabled";
+
 export default function Home() {
   const [isLLMActive, setIsLLMActive] = React.useState(false);
   const [isAprilFools, setIsAprilFools] = React.useState(false);
+  // null = preference not read yet (first paint shows a black plate so the page never flashes).
+  const [introEnabled, setIntroEnabled] = useState<boolean | null>(null);
+  const [introRun, setIntroRun] = useState(0);
+  const [introFinished, setIntroFinished] = useState(false);
+  const [canvasSpin, setCanvasSpin] = useState(false);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
+  const heroMetrics = useRef<{ width: number; height: number } | null>(null);
 
   React.useEffect(() => {
     const today = new Date();
@@ -68,6 +117,60 @@ export default function Home() {
       setIsAprilFools(true);
     }
   }, []);
+
+  useEffect(() => {
+    const enabled = window.localStorage.getItem(INTRO_SETTING_KEY) !== "off";
+    setIntroEnabled(enabled);
+    setCanvasSpin(!enabled);
+    setIntroFinished(!enabled);
+    if (enabled) window.scrollTo(0, 0);
+  }, []);
+
+  const measureHeroText = useCallback((metrics: { width: number; height: number }) => {
+    heroMetrics.current = metrics;
+  }, []);
+
+  // Screen rect the intro has to morph its word onto: the canvas box plus the hero word's own
+  // world-space size projected through the canvas camera (same fov/z as the intro's).
+  const getIntroTarget = useCallback((): IntroTarget | null => {
+    const wrap = canvasWrapRef.current;
+    const metrics = heroMetrics.current;
+    if (!wrap || !metrics) return null;
+    const rect = wrap.getBoundingClientRect();
+    // Measure at the word's front face: that is the outline the eye sees, and the plane the intro
+    // morphs its own front face onto.
+    const pixelsPerWorld = rect.height / visibleWorldHeight(HERO_CAMERA.fov, HERO_CAMERA.z - TEXT3D_FRONT_OFFSET);
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      width: metrics.width * pixelsPerWorld,
+      height: metrics.height * pixelsPerWorld,
+    };
+  }, []);
+
+  const startIntro = useCallback(() => {
+    setIntroFinished(false);
+    setCanvasSpin(false);
+    setIntroRun((run) => run + 1);
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleIntroHandoff = useCallback(() => setCanvasSpin(true), []);
+  const handleIntroFinish = useCallback(() => setIntroFinished(true), []);
+
+  const toggleIntro = useCallback(() => {
+    const next = introEnabled !== true;
+    window.localStorage.setItem(INTRO_SETTING_KEY, next ? "on" : "off");
+    setIntroEnabled(next);
+    if (next) {
+      startIntro();
+    } else {
+      setIntroFinished(true);
+      setCanvasSpin(true);
+    }
+  }, [introEnabled, startIntro]);
+
+  const showIntro = introEnabled === true && !introFinished && !isAprilFools;
 
   if (isAprilFools) {
     return <MainFool />;
@@ -89,6 +192,18 @@ export default function Home() {
         overflow: "hidden"
       }}
     >
+      {introEnabled === null && (
+        // Preference still unknown: hold the page behind the same black plate the intro starts on.
+        <div style={{ position: "fixed", inset: 0, zIndex: INTRO_OVERLAY_Z_INDEX + 1, backgroundColor: "#000000" }} />
+      )}
+      {showIntro && (
+        <DynamicIntroPrelude
+          key={introRun}
+          getTarget={getIntroTarget}
+          onHandoff={handleIntroHandoff}
+          onFinish={handleIntroFinish}
+        />
+      )}
       <DynamicThunderExperience />
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -186,6 +301,34 @@ export default function Home() {
             animation-iteration-count: infinite, infinite;
             animation-direction: alternate, alternate;
           }
+
+          /* Intro controls: the tab is always there, the buttons slide out on hover or focus. */
+          .intro-drawer-body {
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-left: 0;
+            transition: max-width 0.22s ease, opacity 0.22s ease, padding-left 0.22s ease;
+          }
+          .intro-drawer:hover .intro-drawer-body,
+          .intro-drawer:focus-within .intro-drawer-body {
+            max-width: 420px;
+            opacity: 1;
+            padding-left: 8px;
+          }
+          .intro-drawer:hover .intro-drawer-tab,
+          .intro-drawer:focus-within .intro-drawer-tab {
+            color: #ffffff;
+            box-shadow: 3px 3px 0 #ff2a4d, 0 0 12px #00ffd0;
+          }
+          /* No hover to speak of: keep the drawer open so the buttons stay reachable. */
+          @media (hover: none) {
+            .intro-drawer-body {
+              max-width: 420px;
+              opacity: 1;
+              padding-left: 8px;
+            }
+          }
         `
       }} />
 
@@ -210,21 +353,103 @@ export default function Home() {
         WIP!!!!!!
       </h2>
 
-      <div style={{ width: "100%", height: "400px", margin: "20px 0" }}>
-        <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+      <div ref={canvasWrapRef} style={{ width: "100%", height: "400px", margin: "20px 0" }}>
+        <Canvas camera={{ position: [0, 0, HERO_CAMERA.z], fov: HERO_CAMERA.fov }}>
           <ambientLight intensity={0.2} />
           <directionalLight position={[-10, 0, 0]} intensity={2.0} color="#ff0040" />
           <directionalLight position={[10, 0, 0]} intensity={2.0} color="#0080ff" />
           <directionalLight position={[0, -10, 0]} intensity={2.0} color="#80ff80" />
           <directionalLight position={[0, 10, 0]} intensity={2.0} color="#ffff00" />
           <React.Suspense fallback={null}>
-            <RotatingGradientText />
+            <RotatingGradientText spin={canvasSpin} onMeasure={measureHeroText} />
             <EffectComposer>
               <Bloom luminanceThreshold={1.2} luminanceSmoothing={0.9} intensity={2.5} mipmapBlur />
             </EffectComposer>
           </React.Suspense>
         </Canvas>
       </div>
+
+      {/* Intro controls: top-left drawer, collapsed until hovered so the page keeps its layout. */}
+      {introEnabled !== null && (
+        <div
+          className="intro-drawer"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            zIndex: 200,
+            display: "flex",
+            alignItems: "flex-start",
+            fontFamily: "'Courier New', Courier, monospace",
+          }}
+        >
+          <div
+            className="intro-drawer-tab"
+            style={{
+              border: "3px outset #00ffff",
+              borderLeft: "none",
+              borderTop: "none",
+              background: "linear-gradient(135deg, #001f26 0%, #003a44 60%, #001f26 100%)",
+              boxShadow: "3px 3px 0 #ff2a4d",
+              padding: "5px 10px 5px 8px",
+              color: "#00ffd0",
+              fontSize: "0.8rem",
+              letterSpacing: "0.16em",
+              textShadow: "0 0 8px #00ffd0, 1px 1px 0 #000",
+              cursor: "crosshair",
+              userSelect: "none",
+            }}
+          >
+            ▸ INTRO
+          </div>
+          <div
+            className="intro-drawer-body"
+            style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "crosshair" }}
+          >
+            <button
+              type="button"
+              onClick={startIntro}
+              style={{
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                border: "3px outset #ff2a4d",
+                background: "linear-gradient(135deg, #2a0006 0%, #6b0014 55%, #2a0006 100%)",
+                boxShadow: "3px 3px 0 #00ffff",
+                padding: "5px 14px",
+                color: "#ffe9ec",
+                fontFamily: "inherit",
+                fontSize: "0.85rem",
+                fontWeight: 900,
+                letterSpacing: "0.12em",
+                textShadow: "0 0 10px #ff003c, 1px 1px 0 #000",
+                cursor: "crosshair",
+              }}
+            >
+              ▶ 重播 / REPLAY
+            </button>
+            <button
+              type="button"
+              onClick={toggleIntro}
+              aria-pressed={!introEnabled}
+              style={{
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                border: "3px inset #00ffff",
+                backgroundColor: "#000044",
+                color: "#00ffd0",
+                padding: "5px 14px",
+                fontFamily: "inherit",
+                fontSize: "0.85rem",
+                letterSpacing: "0.12em",
+                textShadow: "0 0 8px #00ffd0, 1px 1px 0 #000",
+                cursor: "crosshair",
+              }}
+            >
+              {introEnabled ? "禁用 / DISABLE" : "启用 / ENABLE"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <table>
         <thead>
