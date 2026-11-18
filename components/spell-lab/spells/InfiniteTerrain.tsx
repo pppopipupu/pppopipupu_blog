@@ -99,13 +99,23 @@ export function getModifiedHeight(x: number, z: number, globalCraters: { x: numb
   }
   return h;
 }
+export function resolutionForDist(d: number): number {
+  if (d <= 2) return 32;
+  if (d <= 5) return 16;
+  return 8;
+}
 
-function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; cratersVersion: number }) {
+export function lodForDist(d: number): number {
+  return d <= 2 ? 0 : d <= 5 ? 1 : 2;
+}
+
+
+function TerrainChunk({ cx, cz, cratersVersion, dist, lod }: { cx: number; cz: number; cratersVersion: number; dist: number; lod: number }) {
   const chunkXStart = cx * CHUNK_SIZE;
   const chunkZStart = cz * CHUNK_SIZE;
 
   const geo = useMemo(() => {
-    const resolution = 24;
+    const resolution = resolutionForDist(dist);
     const g = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, resolution, resolution);
     g.rotateX(-Math.PI * 0.5);
 
@@ -204,10 +214,10 @@ function TerrainChunk({ cx, cz, cratersVersion }: { cx: number; cz: number; crat
     g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
     return g;
-  }, [cx, cz, cratersVersion, chunkXStart, chunkZStart]);
+  }, [cx, cz, cratersVersion, chunkXStart, chunkZStart, dist]);
 
   return (
-    <mesh position={[chunkXStart + CHUNK_SIZE / 2, 0, chunkZStart + CHUNK_SIZE / 2]} geometry={geo} castShadow receiveShadow>
+    <mesh position={[chunkXStart + CHUNK_SIZE / 2, 0, chunkZStart + CHUNK_SIZE / 2]} geometry={geo} castShadow={dist <= 3} receiveShadow>
       <meshStandardMaterial vertexColors roughness={0.85} metalness={0.1} />
     </mesh>
   );
@@ -221,7 +231,7 @@ export function InfiniteTerrain({ cameraPos, cratersVersion, viewDistance = 3 }:
     const radius = viewDistance;
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dz = -radius; dz <= radius; dz++) {
-        chunks.push({ cx: cx + dx, cz: cz + dz });
+        chunks.push({ cx: cx + dx, cz: cz + dz, dist: Math.max(Math.abs(dx), Math.abs(dz)), lod: lodForDist(Math.max(Math.abs(dx), Math.abs(dz))) });
       }
     }
     return chunks;
@@ -235,6 +245,8 @@ export function InfiniteTerrain({ cameraPos, cratersVersion, viewDistance = 3 }:
           cx={chunk.cx}
           cz={chunk.cz}
           cratersVersion={cratersVersion}
+          dist={chunk.dist}
+          lod={chunk.lod}
         />
       ))}
     </group>

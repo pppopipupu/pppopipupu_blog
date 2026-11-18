@@ -6,14 +6,20 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import DynamicSpellLabScene from "@/components/DynamicSpellLabScene";
 import type { SpellType } from "@/components/DynamicSpellLabScene";
-import { FireballIcon, LightningIcon, DisintegrateIcon, PrismaticWallIcon, AnimateDeadIcon } from "@/components/SpellIcons";
+import { FireballIcon, LightningIcon, DisintegrateIcon, PrismaticWallIcon, AnimateDeadIcon, SunburstIcon, DestructiveWaveIcon, StormOfVengeanceIcon, GravitySinkholeIcon, PulseWaveIcon, RavenousVoidIcon } from "@/components/SpellIcons";
 
 const SPELLS: { id: SpellType; name: string; icon: string; color: string; desc: string }[] = [
   { id: "fireball", name: "火球术", icon: "o", color: "#ff4400", desc: "向目标位置发射一枚火球" },
   { id: "lightning", name: "召雷术", icon: "z", color: "#4488ff", desc: "召唤闪电轰击目标位置" },
   { id: "disintegrate", name: "解离术", icon: "x", color: "#00ff00", desc: "射出一道绿色光线解离大面积地形" },
   { id: "prismatic-wall", name: "虹光法墙", icon: "w", color: "#ffffff", desc: "拖动鼠标释放一道绚丽光墙，每秒对敌人造成伤害" },
-  { id: "animate-dead", name: "操控死尸", icon: "n", color: "#a020f0", desc: "点击小人尸体召唤一只自动寻敌攻击的僵尸，拥有100HP" }
+  { id: "animate-dead", name: "操控死尸", icon: "n", color: "#a020f0", desc: "点击小人尸体召唤一只自动寻敌攻击的僵尸，拥有100HP" },
+  { id: "sunburst", name: "阳炎爆", icon: "s", color: "#ffd54a", desc: "在目标点引爆半径60尺的耀眼日光，造成12d6光耀伤害" },
+  { id: "destructive-wave", name: "湮灭波", icon: "d", color: "#ffb020", desc: "扩散半径30尺的圣力冲击波，造成5d6光耀/暗蚀与5d6雷鸣伤害" },
+  { id: "storm-of-vengeance", name: "复仇风暴", icon: "v", color: "#8a6cff", desc: "召唤半径300尺的末日雷暴，十轮冰雹、闪电、酸雨与寒风" },
+  { id: "gravity-sinkhole", name: "引力裂沟", icon: "g", color: "#8c6cff", desc: "四环力场法术，在目标点形成半径20尺的塌陷引力球，3秒内造成5d10力场伤害并将敌人拉向中心" },
+  { id: "pulse-wave", name: "脉冲波动", icon: "p", color: "#7fdbff", desc: "三环力场法术，向相机方向释放30尺锥形脉冲，造成6d6力场伤害并推开敌人15尺" },
+  { id: "ravenous-void", name: "饕餮虚空", icon: "r", color: "#b388ff", desc: "九环力场法术，召唤持续12秒的黑色虚空球，每秒撕扯100尺内的敌人并造成2d10力场伤害" }
 ];
 
 export default function SpellLab() {
@@ -261,6 +267,12 @@ export default function SpellLab() {
                 {spell.id === "disintegrate" && <DisintegrateIcon active={true} />}
                 {spell.id === "prismatic-wall" && <PrismaticWallIcon active={true} />}
                 {spell.id === "animate-dead" && <AnimateDeadIcon active={true} />}
+                {spell.id === "sunburst" && <SunburstIcon active={true} />}
+                {spell.id === "destructive-wave" && <DestructiveWaveIcon active={true} />}
+                {spell.id === "storm-of-vengeance" && <StormOfVengeanceIcon active={true} />}
+                {spell.id === "gravity-sinkhole" && <GravitySinkholeIcon active={true} />}
+                {spell.id === "pulse-wave" && <PulseWaveIcon active={true} />}
+                {spell.id === "ravenous-void" && <RavenousVoidIcon active={true} />}
               </>
             )}
             {spell.name}

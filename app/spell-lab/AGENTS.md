@@ -7,3 +7,4 @@
   `SpellLabScene` sets and clears on mount/unmount; keep both sides in sync.
 - Supabase stats: a missing `spell_lab_stats` row surfaces as error code PGRST116 - that is the
   "first visit" signal (insert with count 0), not a failure. `cast_count` updates are upserts.
+- **WebGPU**: Renderer migrated to WebGPU via `components/spell-lab/webgpu/SpellLabCanvas`. Uses `vgpu` for device management, `three/webgpu` renderer, `RenderPipeline` + bloom for post-processing. No WebGL fallback. See `components/spell-lab/AGENTS.md` for details.
