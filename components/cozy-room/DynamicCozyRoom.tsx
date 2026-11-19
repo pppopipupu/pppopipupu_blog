@@ -51,6 +51,54 @@ const RemasteredLineVillageScene = dynamic(
   }
 );
 
+const NeonMedievalTownScene = dynamic(
+  () => import("./neon-town/NeonMedievalTownScene"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: "100%",
+          height: "700px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#f4efe4",
+          color: "#171412",
+          fontFamily: "monospace",
+          fontSize: "1.15rem",
+        }}
+      >
+        <span className="blink-text">LOADING GEMINI 4 NEON GRAND MEDIEVAL TOWN...</span>
+      </div>
+    ),
+  }
+);
+
+const NeonFantasyVillaScene = dynamic(
+  () => import("./neon-villa/NeonFantasyVillaScene"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: "100%",
+          height: "700px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#141b2d",
+          color: "#ffdf8c",
+          fontFamily: "monospace",
+          fontSize: "1.15rem",
+        }}
+      >
+        <span className="blink-text">LOADING GEMINI 4 NEON FANTASY VILLA...</span>
+      </div>
+    ),
+  }
+);
+
 const CozyRoomScene = dynamic(() => import("./CozyRoomScene"), {
   ssr: false,
   loading: () => (
@@ -94,7 +142,7 @@ const LineArtScene = dynamic(() => import("./LineArtScene"), {
 });
 
 type VersionId = "remaster" | "legacy";
-type SceneId = "cottage" | "village";
+type SceneId = "cottage" | "village" | "neon-town" | "neon-villa";
 
 const VERSION_BTN_BASE: React.CSSProperties = {
   fontFamily: "monospace",
@@ -163,6 +211,14 @@ export default function DynamicCozyRoom() {
   }, []);
 
   const frameloop = inView ? "always" : "never";
+  const isNeonScene = scene === "neon-town" || scene === "neon-villa";
+
+  const handleVersionChange = (nextVersion: VersionId) => {
+    setVersion(nextVersion);
+    if (isNeonScene) {
+      setScene("village");
+    }
+  };
 
   return (
     <div
@@ -197,9 +253,13 @@ export default function DynamicCozyRoom() {
           fontFamily: "monospace",
         }}
       >
-        {version === "remaster"
-          ? "低多边形林间小屋 / 建筑墨线中世纪村庄（Gemini 4 Hydrogen Remaster版）"
-          : "温馨低多边形卧室 / 黑白线条中世纪村庄（V4 Flash GA版（过去的回忆））"}
+        {scene === "neon-town"
+          ? "建筑消隐线宏伟中世纪城镇（Gemini 4 Neon版 · 鼠标拖拽旋转 / WASD 漫游）"
+          : scene === "neon-villa"
+            ? "西幻 DND 深林三层剖面大别墅（Gemini 4 Neon版 · 鼠标拖拽旋转 / WASD 漫游）"
+            : version === "remaster"
+              ? "低多边形林间小屋 / 建筑墨线中世纪村庄（Gemini 4 Hydrogen Remaster版）"
+              : "温馨低多边形卧室 / 黑白线条中世纪村庄（V4 Flash GA版（过去的回忆））"}
       </p>
 
       {/* Version Selector Tabs */}
@@ -216,17 +276,17 @@ export default function DynamicCozyRoom() {
       >
         <button
           role="tab"
-          aria-selected={version === "remaster"}
-          style={version === "remaster" ? VERSION_BTN_ACTIVE : VERSION_BTN_BASE}
-          onClick={() => setVersion("remaster")}
+          aria-selected={!isNeonScene && version === "remaster"}
+          style={!isNeonScene && version === "remaster" ? VERSION_BTN_ACTIVE : VERSION_BTN_BASE}
+          onClick={() => handleVersionChange("remaster")}
         >
           ★ Gemini 4 Hydrogen Remaster版
         </button>
         <button
           role="tab"
-          aria-selected={version === "legacy"}
-          style={version === "legacy" ? VERSION_BTN_ACTIVE : VERSION_BTN_BASE}
-          onClick={() => setVersion("legacy")}
+          aria-selected={!isNeonScene && version === "legacy"}
+          style={!isNeonScene && version === "legacy" ? VERSION_BTN_ACTIVE : VERSION_BTN_BASE}
+          onClick={() => handleVersionChange("legacy")}
         >
           V4 Flash GA版（过去的回忆）
         </button>
@@ -260,10 +320,30 @@ export default function DynamicCozyRoom() {
         >
           {version === "remaster" ? "线条村庄 (Remaster)" : "线条村庄 (旧版)"}
         </button>
+        <button
+          role="tab"
+          aria-selected={scene === "neon-town"}
+          style={scene === "neon-town" ? BTN_ACTIVE : BTN_BASE}
+          onClick={() => setScene("neon-town")}
+        >
+          线条宏伟中世纪城镇（Gemini 4 Neon版）
+        </button>
+        <button
+          role="tab"
+          aria-selected={scene === "neon-villa"}
+          style={scene === "neon-villa" ? BTN_ACTIVE : BTN_BASE}
+          onClick={() => setScene("neon-villa")}
+        >
+          低多边形温馨小屋（Gemini 4 Neon版）
+        </button>
       </div>
 
       {mounted ? (
-        version === "remaster" ? (
+        scene === "neon-town" ? (
+          <NeonMedievalTownScene frameloop={frameloop} />
+        ) : scene === "neon-villa" ? (
+          <NeonFantasyVillaScene frameloop={frameloop} />
+        ) : version === "remaster" ? (
           scene === "cottage" ? (
             <RemasteredCottageScene frameloop={frameloop} />
           ) : (
